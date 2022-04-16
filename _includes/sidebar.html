@@ -1,11 +1,10 @@
 <!--
   The Side Bar
 -->
-
 <div id="sidebar" class="d-flex flex-column align-items-end">
   <div class="profile-wrapper text-center">
     <div id="avatar">
-      <a href="{{ '/' | relative_url }}" class="mx-auto">
+      <a href="{{ '/' | relative_url }}" class="mx-auto glitch">
         {% if site.avatar != empty and site.avatar %}
           {% capture avatar_url %}
             {% if site.avatar contains '://' %}
@@ -16,7 +15,14 @@
               {{ site.avatar | relative_url }}
             {% endif %}
           {% endcapture %}
-          <img src="{{ avatar_url | strip }}" alt="avatar" onerror="this.style.display='none'">
+          <!-- <div class="glitch mx-auto"> -->
+            <div class="glitch__item"></div>
+            <div class="glitch__item"></div>
+            <div class="glitch__item"></div>
+            <div class="glitch__item"></div>
+            <div class="glitch__item"></div>            
+          <!-- </div> -->
+          <!-- <img src="{{ avatar_url | strip }}" alt="avatar" onerror="this.style.display='none'"> -->
         {% endif %}
       </a>
     </div>
@@ -32,19 +38,23 @@
 
     <!-- home -->
     <li class="nav-item{% if page.layout == 'home' %}{{ " active" }}{% endif %}">
-      <a href="{{ '/' | relative_url }}" class="nav-link">
+      <a href="{{ '/blog' | relative_url }}" class="nav-link cybr-btn">
         <i class="fa-fw fas fa-home ml-xl-3 mr-xl-3 unloaded"></i>
         <span>{{ site.data.locales[lang].tabs.home | upcase }}</span>
       </a>
     </li>
     <!-- the real tabs -->
     {% for tab in site.tabs %}
-    <li class="nav-item{% if tab.url == page.url %}{{ " active" }}{% endif %}">
-      <a href="{{ tab.url | relative_url }}" class="nav-link">
+    <li class="nav-item{% if tab.url == page.url or page.layout == 'home' %}{{ " active" }}{% endif %}">
+      
+      <a href="{{ tab.url | relative_url }}" class="nav-link cybr-btn">
         <i class="fa-fw {{ tab.icon }} ml-xl-3 mr-xl-3 unloaded"></i>
         {% capture tab_name %}{{ tab.url | split: '/' }}{% endcapture %}
 
-        <span>{{ site.data.locales[lang].tabs.[tab_name] | default: tab.title | upcase }}</span>
+
+        {{ site.data.locales[lang].tabs.[tab_name] | default: tab.title | upcase }}
+        <span aria-hidden class="cybr-btn__glitch">{{ site.data.locales[lang].tabs.[tab_name] | default: tab.title | upcase }}
+        </span>
       </a>
     </li> <!-- .nav-item -->
     {% endfor %}
@@ -72,8 +82,8 @@
         {%- elsif entry.type == 'email' -%}
           {% assign email = site.social.email | split: '@' %}
           javascript:location.href = 'mailto:' + ['{{ email[0] }}','{{ email[1] }}'].join('@')
-        {%- elsif entry.type == 'rss' -%}
-          {{ "/feed.xml" | relative_url }}
+        {%- elsif entry.type == 'linkedin' -%}
+          https://www.linkedin.com/in/{{ site.linkedin.username }}
         {%- else -%}
           {{ entry.url }}
         {%- endif -%}
