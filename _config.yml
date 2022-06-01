@@ -23,7 +23,7 @@ timezone: America/Bogota
 
 title: rabb1t                          # the main title
 
-tagline: blog personal, CTFS, artículos de ciberseguridad y más.   # it will display as the sub-title
+tagline: Blog personal, CTFS, artículos de ciberseguridad y más.   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
   Based on jekyll chirpy and neumorphism template.
