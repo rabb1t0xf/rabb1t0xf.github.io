@@ -10,8 +10,17 @@ const uglify = require('gulp-uglify');
 const insert = require('gulp-insert');
 const fs = require('fs');
 
+//new const
+const sass = require('gulp-sass');
+const cssnano = require('gulp-cssnano');
+const prefix = require('gulp-autoprefixer');
+
+
+
+
 const JS_SRC = '_javascript';
 const JS_DEST = `assets/js/dist`;
+
 
 function concatJs(files, output) {
   return src(files)

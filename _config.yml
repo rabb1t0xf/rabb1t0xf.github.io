@@ -21,9 +21,9 @@ timezone: America/Bogota
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: ctfs&+                          # the main title
+title: rabb1t                          # the main title
 
-tagline: rabb1t0xf   # it will display as the sub-title
+tagline: blog personal, CTFS, artículos de ciberseguridad y más.   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
   Based on jekyll chirpy and neumorphism template.
@@ -32,18 +32,18 @@ description: >-                        # used by seo meta and the atom feed
 url: ''
 
 github:
-  username: rabb1t0xf             # change to your github username
+  username: rabb1t             # change to your github username
 
 twitter:
-  username: rabb1t0xf            # change to your twitter username
+  username: rabb1t            # change to your twitter username
 
 linkedin: 
-  username: rabb1t0xf
+  username: rabb1t
 
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: rabb1t0xf
+  name: rabb1t
   email: rabb1t0xf@gmail.com             # change to your email address
   links:
     # The first element serves as the copyright owner's link
@@ -51,7 +51,7 @@ social:
     - https://github.com/rabb1t0xf      # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
-    - https://www.linkedin.com/in/rabb1t0xf
+    - https://www.linkedin.com/in/rabb1t
 
 google_site_verification:               # fill in to your verification string
 

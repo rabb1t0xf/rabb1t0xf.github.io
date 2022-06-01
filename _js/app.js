@@ -40,29 +40,29 @@ $(document).ready(function() {
 /* FUNCTIONS */
 /* Preloader */
 
-function fadeOutPreloader(element, duration) {
-  opacity = 1;
+// function fadeOutPreloader(element, duration) {
+//   opacity = 1;
 
-  interval = setInterval(function() {
-    if (opacity <= 0) {
-      element.style.zIndex = 0;
-      element.style.opacity = 0;
-      element.style.filter = 'alpha(opacity = 0)';
+//   interval = setInterval(function() {
+//     if (opacity <= 0) {
+//       element.style.zIndex = 0;
+//       element.style.opacity = 0;
+//       element.style.filter = 'alpha(opacity = 0)';
 
-      // Allow horizontal scroll
-      document.documentElement.style.overflowY = 'auto';
+//       // Allow horizontal scroll
+//       document.documentElement.style.overflowY = 'auto';
 
-      // Remove preloader div
-      document.getElementById('preloader').remove();
+//       // Remove preloader div
+//       document.getElementById('preloader').remove();
 
-      clearInterval(interval);
-    } else {
-      opacity -= 0.1;
-      element.style.opacity = opacity;
-      element.style.filter = 'alpha(opacity = ' + opacity * 100 + ')';
-    }
-  }, duration);
-}
+//       clearInterval(interval);
+//     } else {
+//       opacity -= 0.1;
+//       element.style.opacity = opacity;
+//       element.style.filter = 'alpha(opacity = ' + opacity * 100 + ')';
+//     }
+//   }, duration);
+// }
 
 /* Typing Text */
 
