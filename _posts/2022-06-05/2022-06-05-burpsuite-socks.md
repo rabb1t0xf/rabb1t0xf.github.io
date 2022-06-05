@@ -15,7 +15,7 @@ image:
 ## Índice
 - [Herramientas que debemos instalar o tener](#herramientas-que-debemos-instalar-o-tener)
 - [Configurando BurpSuite](#configurando-burpsuite)
-- [Habilitar el servicio tor](#habilitar)
+- [Habilitar el servicio tor](#habilitar-el-servicio-tor)
 - [Hasta el próximo post](#hasta-el-próximo-post)
 
 
