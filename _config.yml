@@ -102,15 +102,16 @@ comments:
   utterances:
     repo:         # <gh-username>/<repo>
     issue_term:   # < url | pathname | title | ...>
+  
   # Giscus options › https://giscus.app
   giscus:
-    repo:             rabb1t-0/rabb1t-0.github.io # <gh-username>/<repo>
-    repo_id:
-    category:
-    category_id:
-    mapping:          # optional, default to 'pathname'
-    input_position:   # optional, default to 'bottom'
-    lang:             # optional, default to the value of `site.lang`
+    repo:             "rabb1t-0/rabb1t-0.github.io" # <gh-username>/<repo>
+    repo_id:          "R_kgDOHL8JPA"
+    category:         "general"
+    category_id:      "DIC_kwDOHL8JPM4CPeS9"
+    mapping:          "pathname" # optional, default to 'pathname'
+    input_position:   "top" # optional, default to 'bottom'
+    lang:             "en" # optional, default to the value of `site.lang`
 
 # Self-hosted static assets, optional › https://github.com/cotes2020/chirpy-static-assets
 assets:
