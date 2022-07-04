@@ -14,7 +14,7 @@ image:
 ## Índice
 - [Información básica de la máquina](#máquina-undetected)
 - [Fase de enumeración](#fase-de-enumeración)
-- [Explotando fallo de PHP Unit (CVE-2017-9841)](#explotando-la-vulnerabilidad-php-unit)
+- [Explotando fallo de PHP Unit (CVE-2017-9841)](#explotando-la-vulnerabilidad-de-php-unit)
 - [Privesc steven](#escalando-prilivegios-al-usuario-steven)
 - [Privesc root](#escalando-privilegios-al-usuario-root)
 ## Máquina Undetected
