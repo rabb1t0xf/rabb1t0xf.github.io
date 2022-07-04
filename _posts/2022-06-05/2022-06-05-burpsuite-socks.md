@@ -7,9 +7,9 @@ tags: [Anonimato, systemctl, IP, foxyproxy, nmap]
 math: true
 mermaid: true
 image:
-  path: /assets/favicon/burpsuite.png
-  width: 100
-  height: 100
+  path: /assets/favicon/2022-06-04/burpsuite.png
+  width: 180
+  height: 180
 ---
 
 ## Índice
