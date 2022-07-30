@@ -3,7 +3,7 @@ title: WriteUp Late HTB
 author: rabb1t
 date: 2022-07-29
 categories: [HackTheBox, WriteUp, Machines, Linux]
-tags: [STTI, mis-configuration]
+tags: [STTI, flask, lsattr, chattr, tesseract, jinja2]
 math: false
 mermaid: false
 image:
