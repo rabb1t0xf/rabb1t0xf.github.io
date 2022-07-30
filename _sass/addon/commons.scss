@@ -2060,7 +2060,7 @@ $sidebar-display: "sidebar-display";
 
       > li:last-child {
         > a {
-          position: static;
+          position: relative;
         }
       }
 

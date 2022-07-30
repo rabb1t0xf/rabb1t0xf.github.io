@@ -2,21 +2,23 @@
 title: WriteUp Undetected HTB
 author: rabb1t
 date: 2022-07-04
-categories: [HackTheBox, Writeup, Undetected]
+categories: [HackTheBox, WriteUp, Machines, Linux]
 tags: [sshd, reversing, Attacks/Backdoor, strings, Ghidra, PHP Unit, CyberChef]
 math: true
 mermaid: true
 image:
-  path: /assets/favicon/2022-07-04/undetected.png
+  path: https://www.hackthebox.com/storage/avatars/642db092f1e18466871db9f12933396f.png
   width: 180
   height: 180
 ---
 ## Índice
 - [Información básica de la máquina](#máquina-undetected)
+- [Herramientas-y-recursos-empleados](#herramientas-y-recursos-empleados)
 - [Fase de enumeración](#fase-de-enumeración)
 - [Explotando fallo de PHP Unit (CVE-2017-9841)](#explotando-la-vulnerabilidad-de-php-unit)
 - [Privesc steven](#escalando-prilivegios-al-usuario-steven)
 - [Privesc root](#escalando-privilegios-al-usuario-root)
+
 ## Máquina Undetected
 
 | IP     	     |10.10.11.146|
@@ -24,6 +26,18 @@ image:
 | OS		       | Linux		  |
 | Dificultad   | Media      |
 | Creador	     |TheCyberGeek|
+
+## Herramientas y recursos empleados
+
+- Herramientas
+  - nmap
+  - whatweb
+  - JohnTheRipper
+- Recursos
+  - CyberChef
+
+-----
+
 
 ## Fase de enumeración
 Comenzamos realizando un escaneo con nmap:

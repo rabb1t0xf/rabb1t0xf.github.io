@@ -40,7 +40,8 @@
     <li class="nav-item{% if page.layout == 'home' %}{{ " active" }}{% endif %}">
       <a href="{{ '/blog' | relative_url }}" class="nav-link cybr-btn">
         <i class="fa-fw fas fa-home ml-xl-3 mr-xl-3 unloaded"></i>
-        <span>{{ site.data.locales[lang].tabs.home | upcase }}</span>
+        {{ site.data.locales[lang].tabs.home | upcase }}
+        <span class='cybr-btn__glitch' aria-hidden=''>{{ site.data.locales[lang].tabs.home | upcase }}</span>
       </a>
     </li>
     <!-- the real tabs -->
