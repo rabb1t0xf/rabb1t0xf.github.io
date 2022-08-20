@@ -1,6 +1,6 @@
-setTimeout(function() {
-  fadeOutPreloader(document.getElementById('preloader'), 69);
-}, 1500);
+// setTimeout(function() {
+//   fadeOutPreloader(document.getElementById('preloader'), 69);
+// }, 1500);
 
 $(document).ready(function() {
   $(window).on('beforeunload', function() {
@@ -8,7 +8,17 @@ $(document).ready(function() {
   });
 
   /* particlesJS.load(@dom-id, @path-json, @callback (optional)); */
-  particlesJS.load('landing', 'assets/particles.json', function() {});
+
+  // Navidad
+  const today = new Date();
+  const begin_snow  = new Date(today.getFullYear()+"-11-30T23:59:59").getTime();
+  const end_snow    = new Date(today.getFullYear()+"-12-31T23:59:59").getTime();
+
+  if (today.getTime() >= begin_snow && today.getTime() <= end_snow){
+    particlesJS.load('landing', 'assets/particles-snow.json', function(){});
+  } else {
+    particlesJS.load('landing', 'assets/particles.json', function() {});
+  }
 
   // Typing Text
   var element = document.getElementById('txt-rotate');
@@ -34,7 +44,7 @@ $(document).ready(function() {
     once: true
   });
 
-  randomizeOrder();
+  // randomizeOrder();
 });
 
 /* FUNCTIONS */
@@ -110,14 +120,14 @@ TxtRotate.prototype.tick = function() {
 
 /* Word Cloud */
 
-function randomizeOrder() {
-  var parent = document.getElementById('skills');
-  var divs = parent.getElementsByTagName('div');
-  var frag = document.createDocumentFragment();
+// function randomizeOrder() {
+//   var parent = document.getElementById('skills');
+//   var divs = parent.getElementsByTagName('div');
+//   var frag = document.createDocumentFragment();
 
-  // Randomize order of skills
-  while (divs.length) {
-    frag.appendChild(divs[Math.floor(Math.random() * divs.length)]);
-  }
-  parent.appendChild(frag);
-}
+//   // Randomize order of skills
+//   while (divs.length) {
+//     frag.appendChild(divs[Math.floor(Math.random() * divs.length)]);
+//   }
+//   parent.appendChild(frag);
+// }

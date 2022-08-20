@@ -2,8 +2,11 @@
 * The syntax highlight.
 */
 
-@import "colors/light-syntax";
-@import "colors/dark-syntax";
+@import "../colors/light-syntax.scss";
+@import "../colors/dark-syntax.scss";
+@import '../addon/variables.scss';
+@import '../addon/module.scss';
+
 
 html {
   @media (prefers-color-scheme: light) {

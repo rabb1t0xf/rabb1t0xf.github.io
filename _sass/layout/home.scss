@@ -2,6 +2,8 @@
   Style for Homepage
 */
 
+@import '../addon/module.scss';
+
 .pagination {
   color: var(--btn-patinator-text-color);
   font-family: 'Lato', sans-serif;

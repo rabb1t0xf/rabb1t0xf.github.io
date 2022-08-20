@@ -2,6 +2,12 @@
   The common styles
 */
 
+@import '../colors/light-typography.scss';
+@import '../colors/dark-typography.scss';
+@import '../addon/module.scss';
+@import '../addon/variables.scss';
+@import '../layout/post.scss';
+
 html {
   @media (prefers-color-scheme: light) {
     &:not([data-mode]),
@@ -1188,7 +1194,7 @@ $sidebar-display: "sidebar-display";
       &:last-child {
         a {
           position: relative;
-          left: $cursor-width / 2;
+          left: calc($cursor-width / 2);
           width: 100%;
         }
 
@@ -1214,7 +1220,7 @@ $sidebar-display: "sidebar-display";
 
     @for $i from 1 through $tab-count {
       $offset: $tab-count - $i;
-      $top: -$offset * $tab-height + ($tab-height - $tab-cursor-height) / 2;
+      $top: -calc($offset * $tab-height) + calc(($tab-height - $tab-cursor-height) / 2);
 
       @if $i < $tab-count {
         > li.active:nth-child(#{$i}),

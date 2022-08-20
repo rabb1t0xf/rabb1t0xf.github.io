@@ -11,7 +11,7 @@ const insert = require('gulp-insert');
 const fs = require('fs');
 
 //new const
-const sass = require('gulp-sass');
+const sass = require('gulp-sass')(require('sass'));
 const cssnano = require('gulp-cssnano');
 const prefix = require('gulp-autoprefixer');
 
@@ -22,6 +22,49 @@ const JS_SRC = '_javascript';
 const JS_DEST = `assets/js/dist`;
 
 
+/**
+ * Compile and minify sass
+ */
+function stylesAddon() {
+  return src([ '_sass/addon/*.scss', '_sass/colors/*.scss', '_sass/layout/*.scss', '_sass/*.scss'])
+    .pipe(
+      sass({
+        includePaths: [ 'scss' ]
+      })
+    )
+    .pipe(prefix([ 'last 3 versions', '> 1%', 'ie 8' ], { cascade: true }))
+    .pipe(rename('style.min.css'))
+    .pipe(cssnano())
+    .pipe(dest('_site/assets/css/'))
+    .pipe(dest('assets/css'));
+}
+
+function stylesHomePage() {
+    return src([ '_sass/homepage/*.scss'])
+    .pipe(
+      sass({
+        includePaths: [ 'scss' ]
+      })
+    )
+    .pipe(prefix([ 'last 3 versions', '> 1%', 'ie 8' ], { cascade: true }))
+    .pipe(rename('main.min.css'))
+    .pipe(cssnano())
+    .pipe(dest('_site/assets/css/'))
+    .pipe(dest('assets/css'));
+}
+
+function stylesHomePageVendors() {
+  return src([ '_sass/homepage/vendors/*.css' ])
+    .pipe(concat('vendors.min.css'))
+    .pipe(cssnano())
+    .pipe(dest('_site/assets/css/'))
+    .pipe(dest('assets/css'));
+}
+
+
+/**
+ * Compile and minify javascript
+ */
 function concatJs(files, output) {
   return src(files)
     .pipe(concat(output))
@@ -89,15 +132,49 @@ const miscJs = () => {
   );
 };
 
+/**
+ * homePage
+ */
+function scripts() {
+  return src([ '_js/app.js' ])
+    .pipe(rename('app.min.js'))
+    .pipe(uglify())
+    .pipe(dest('_site/assets/js'))
+    .pipe(dest('assets/js'));
+}
+
+function scriptsVendors() {
+  return src([ '_js/vendors/*.js' ])
+    .pipe(concat('vendors.min.js'))
+    .pipe(uglify())
+    .pipe(dest('_site/assets/js'))
+    .pipe(dest('assets/js'));
+}
+
 // GA pageviews report
 const pvreportJs = () => {
   return concatJs(`${JS_SRC}/utils/pageviews.js`, 'pvreport');
 };
 
 const buildJs = parallel(
-  commonsJs, homeJs, postJs, categoriesJs, pageJs, miscJs, pvreportJs);
+  commonsJs, 
+  homeJs, 
+  postJs, 
+  categoriesJs, 
+  pageJs, 
+  miscJs, 
+  pvreportJs,
+  scripts,
+  scriptsVendors
+);
 
-exports.build = series(buildJs, minifyJs);
+const buildScss = parallel(
+  stylesAddon,
+  stylesHomePage,
+  stylesHomePageVendors
+);
+
+exports.build = series(buildJs, minifyJs, buildScss);
 
 exports.liveRebuild = () => {
   buildJs();

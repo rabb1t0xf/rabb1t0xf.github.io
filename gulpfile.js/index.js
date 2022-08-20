@@ -3,7 +3,6 @@
 "use strict";
 
 const js = require('./tasks/js');
-
 exports.default = js.build;
 
 /* keep-alive develop mode, without uglify */
