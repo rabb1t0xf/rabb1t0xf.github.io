@@ -216,7 +216,7 @@ Dictionary attack - Thread 1 - Password found: thuglegacy
 - -v: Verbose mode/Modo verbose
 - -t: Threads/Hilos
 
-> Para obtener el hash equivalente y posteriormente crackearlo con _John the Ripper_ usaríamos _pfx2john_, de igual forma a como hicimos con [_zip2john_](#crackeando-contraseñas-de-archivos)
+> Para obtener el hash equivalente y posteriormente crackearlo con _John the Ripper_ usaríamos _pfx2john_, de igual forma a como hicimos con [_zip2john_](#crackeando-contraseñas)
 {: .prompt-info}
 
 Obtenemos la contraseña _thuglegacy_. Ahora sí podemos crear el certificado y la llave (ingresando la contraseña obtenida) que nos permitan conectarnos a la máquina víctima: 
@@ -318,6 +318,8 @@ Local Group Memberships      *Remote Management Use
 Global Group memberships     *LAPS_Readers         *Domain Users
 The command completed successfully.
 ```
+> Es aquí cuando caemos en cuenta que el nombre de la máquina es una pista a LAPS :P
+{: .prompt-info}
 
 Entre el reconocimiento básico encontramos que el usuario _svc\_deploy_ hace parte del grupo _LAPS\_Readers_. Haciendo una búsqueda por nuestro navegador favorito encontramos un [artículo](https://www.hackingarticles.in/credential-dumpinglaps/) sobre diferentes formas de obtener las contraseñas abusando de _LAPS_.
 
