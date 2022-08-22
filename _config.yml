@@ -1,5 +1,13 @@
 # The Site Configuration
 
+# homepage neumorphism
+typing_text: '"Click on the blog button", 
+"Self-learning",
+"I ❤️ cibersecurity",
+"nmap -p- localhost",
+"netcat -e /bin/bash localhost 443",
+"Ghidra"'
+
 # Import the theme
 theme: jekyll-theme-chirpy
 
@@ -59,7 +67,7 @@ google_site_verification:               # fill in to your verification string
 # The end of `jekyll-seo-tag` settings
 
 google_analytics:
-  id:                 # fill in your Google Analytics ID
+  id: 328253171                # fill in your Google Analytics ID
   # Google Analytics pageviews report settings
   pv:
     proxy_endpoint:   # fill in the Google Analytics superProxy endpoint of Google App Engine
@@ -119,7 +127,7 @@ assets:
     enabled:      # boolean, keep empty means false
     # specify the Jekyll environment, empty means both
     # only works if `assets.self_host.enabled` is 'true'
-    env:          # [development|production]
+    env:       # [development|production]
 
 paginate: 10
 paginate_path: blog/page:num

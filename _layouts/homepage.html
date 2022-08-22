@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="google-site-verification" content="jIcmwXsya3EPvz9lnPfhlUh3zl3-azxLUnAuvJkq_Qk" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ site.title }}</title>
@@ -20,11 +21,12 @@
   <div id="landing">
   <div class="landing-title">
     <h1>Hi, I&#39;m
-      <span class="highlight-title">{{ site.title }}</span>,
+      <span class="highlight-title">{{ site.title }}</span>, </br>
     </h1>
+
     <h1>
       <span id="txt-rotate" data-period="2000"
-        data-rotate='["Click on the blog button", "Self-learning", "I ❤️ cibersecurity", "nmap", "netcat", "Ghidra"]'
+        data-rotate='[{{ site.typing_text }}]'
       >
       </span>
     </h1>
@@ -107,7 +109,6 @@
 
 
 </div>
-
 <!-- Google Analytics -->
 
 <!-- <script>

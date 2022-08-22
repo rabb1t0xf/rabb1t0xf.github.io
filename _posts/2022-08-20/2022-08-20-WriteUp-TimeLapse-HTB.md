@@ -3,7 +3,7 @@ title: WriteUp TimeLapse HTB
 author: rabb1t
 date: 2022-08-20
 categories: [HackTheBox, WriteUp, Machines, Windows]
-tags: [pfx2john, zip2john, john, certificate-openssl, LAPS, PFX, crackmapexec, evil-winrm, smbclient]
+tags: [pfx2john, zip2john, john, LAPS, PFX, crackmapexec, evil-winrm, smbclient, OpenSSL]
 math: false
 mermaid: false
 image:
@@ -336,7 +336,7 @@ LAPS        10.10.11.152    389    DC01             [*] Getting LAPS Passwords
 LAPS        10.10.11.152    389    DC01             Computer: DC01$                Password: 6jdi\#U8Ju}8Eq&Gmw,yF\#}iH
 ```
 
-> Para usar el argumento de "--kdcHost" debimos posteriormente haber agregado el dominio al archivo '/etc/host' apuntando a la dirección ip de la máquina víctima.
+> Para usar el argumento de "--kdcHost" debimos anteriormente haber agregado el dominio al archivo '/etc/host' apuntando a la dirección ip de la máquina víctima.
 {: .prompt-info}
 
 Nos conectamos con evil-winrm vía SSL (-S) como administrador

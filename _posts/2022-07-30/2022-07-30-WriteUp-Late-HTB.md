@@ -237,4 +237,5 @@ root
 
 Cuando iniciamos sesión el código es interpretado, asigna el permiso dado a _/bin/bash_
 Ejecutamos _/bin/bash_ con permisos privilegiados (-p) y somos root :D.  
+
 ¡Happy Hacking!
