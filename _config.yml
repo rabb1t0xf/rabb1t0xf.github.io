@@ -37,7 +37,7 @@ description: >-                        # used by seo meta and the atom feed
   Based on jekyll chirpy and neumorphism template.
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
-url: ''
+url: 'https://rabb1t-0.github.io'
 
 github:
   username: rabb1t-0             # change to your github username
@@ -67,7 +67,7 @@ google_site_verification:               # fill in to your verification string
 # The end of `jekyll-seo-tag` settings
 
 google_analytics:
-  id: G-05L6LTCW2M               # fill in your Google Analytics ID
+  id: #G-05L6LTCW2M               # fill in your Google Analytics ID
   # Google Analytics pageviews report settings
   pv:
     proxy_endpoint:   # fill in the Google Analytics superProxy endpoint of Google App Engine
