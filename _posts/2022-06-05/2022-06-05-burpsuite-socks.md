@@ -1,7 +1,7 @@
 ---
 title: Socks y BurpSuite
 author: rabb1t
-date: 2022-06-04
+date: 2022-06-05
 categories: [BurpSuite, Socks, tor]
 tags: [Anonimato, systemctl, IP, foxyproxy, nmap]
 math: true

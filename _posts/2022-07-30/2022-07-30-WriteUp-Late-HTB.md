@@ -1,7 +1,7 @@
 ---
 title: WriteUp Late HTB
 author: rabb1t
-date: 2022-07-29
+date: 2022-07-30
 categories: [HackTheBox, WriteUp, Machines, Linux]
 tags: [STTI, flask, lsattr, chattr, tesseract, jinja2]
 math: false
