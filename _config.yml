@@ -2,18 +2,18 @@
 
 # homepage neumorphism
 typing_text: '"Click on the blog button", 
-"Self-learning",
+"I love mathematics",
 "I ❤️ cibersecurity",
 "nmap -p- localhost",
 "netcat -e /bin/bash localhost 443",
-"Ghidra"'
+"Ghidra 🐲"'
 
 # Import the theme
 theme: jekyll-theme-chirpy
 
 # Change the following value to '/PROJECT_NAME' ONLY IF your site type is GitHub Pages Project sites
 # and doesn't have a custom domain.
-baseurl: #'rabb1t-0.github.io'
+baseurl: 'rabb1t-0.github.io' #use when I will git push 'rabb1t-0.github.io'
 
 # The language of the webpage › http://www.lingoes.net/en/translator/langcode.htm
 # If it has the same name as one of the files in folder `_data/locales`, the layout language will also be changed,

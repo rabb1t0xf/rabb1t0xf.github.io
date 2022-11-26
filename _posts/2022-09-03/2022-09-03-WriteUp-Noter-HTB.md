@@ -11,6 +11,7 @@ image:
   width: 180
   height: 180
 ---
+
 ## Índice
 - [Información básica de la máquina](#máquina-noter)
 - [Herramientas y recursos empleados](#herramientas-y-recursos-empleados)
@@ -332,7 +333,7 @@ Database changed
 MariaDB [mysql]> create table test(line blob);
 Query OK, 0 rows affected
 
-MariaDB [mysql]> insert into test values(load_file('/home/svc/raptor_udf2.so'));
+MariaDB [mysql]> insert into test values(load_file('/home/tmp/raptor_udf2.so'));
 Query OK, 1 row affected
 
 MariaDB [mysql]> select * from test into dumpfile '/usr/lib/x86_64-linux-gnu/mariadb19/plugin/raptor_udf2.so';
