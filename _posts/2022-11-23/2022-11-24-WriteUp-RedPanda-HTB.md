@@ -19,7 +19,7 @@ image:
 - [Buscando pandas rojos](#buscando-pandas-rojos)
 - [Explotando la vulnerabilidad STTI mientras buscamos pandas rojos](#explotando-la-vulnerabilidad-stti-mientras-buscamos-pandas-rojos)
   - [Obteniendo una shell como el usuario woodenk](#obteniendo-una-shell-como-el-usuario-woodenk)
-- [Escalando privilegios](#escalando-prilivegios)
+- [Escalando privilegios](#escalando-privilegios)
   - [Analizando procesos con pspy](#analizando-procesos-con-pspy)
   - [Analizando código en Java y explotando un XXE](#analizando-código-en-java-y-explotando-un-xxe)
 
