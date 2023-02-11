@@ -3,7 +3,7 @@ title: WriteUp Late HTB
 author: rabb1t
 date: 2022-07-30
 categories: [HackTheBox, WriteUp, Machines, Linux]
-tags: [STTI, flask, lsattr, chattr, tesseract, jinja2]
+tags: [SSTI, flask, lsattr, chattr, tesseract, jinja2]
 math: false
 mermaid: false
 image:
@@ -15,7 +15,7 @@ image:
 - [Información básica de la máquina](#máquina-late)
 - [Herramientas y recursos empleados](#herramientas-y-recursos-empleados)
 - [Enumeración](#enumeración)
-- [Explotando la vulnerabilidad STTI](#explotando-la-vulnerabilidad-stti)
+- [Explotando la vulnerabilidad SSTI](#explotando-la-vulnerabilidad-ssti)
 - [Escalando privilegios](#escalando-privilegios)
 	- [Transición de archivos](#transición-de-archivos)
 	- [Analizando posible vector](#analizando-posible-vector)
@@ -79,26 +79,26 @@ _Home_, _Contact_ y _MORE INFO_, nos llevan a la misma página, no tenemos nada 
 __late free online photo editor__ nos lleva a _images.late.htb_, procedemos a agregar el subdominio al _/etc/hosts_ para que el navegador sepa resolver. Vemos que nos redirige a una página en la cual podemos subir una imágen para leer el texto de la imágen y guardarlo en un archivo, además muestra que está empleando flask:
 ![Subdomain images.late.htb](/assets/favicon/2022-07-30/late3.png)
 
-{% assign stti = "{{7*7}}" %}
-## Explotando la vulnerabilidad STTI
-¿Qué vulnerabilidad podríamos intentar en este caso? Por supuesto, podríamos intentar la vulnerabilidad STTI. Intentemos subir una imágen de prueba con {{ stti }} (Hay otros test que se pueden usar para comprobar si es vulnerable):
+{% assign ssti = "{{7*7}}" %}
+## Explotando la vulnerabilidad SSTI
+¿Qué vulnerabilidad podríamos intentar en este caso? Por supuesto, podríamos intentar la vulnerabilidad SSTI. Intentemos subir una imágen de prueba con {{ ssti }} (Hay otros test que se pueden usar para comprobar si es vulnerable):
 
-![Test STTI](/assets/favicon/2022-07-30/test_stti.png)
+![Test SSTI](/assets/favicon/2022-07-30/test_ssti.png)
 
 Al subir la imágen y escánearla nos descarga un archivo _results.txt_ en el que aparece el texto de la imágen, pero en este caso ha sido interpretado el código. Abrimos el archivo y aparece `<p>49</p>`, de esta forma queda testeado que es vulnerable. 
 
 Probemos un payload de [AllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#jinja2). En mi caso usaré el siguiente para ver los usuarios del sistema:
 
-{% assign stti = '{{ get_flashed_messages.__globals__.__builtins__.open("/etc/passwd").read() }}' %}
+{% assign ssti = '{{ get_flashed_messages.__globals__.__builtins__.open("/etc/passwd").read() }}' %}
 ```shell
-{{ stti }}
+{{ ssti }}
 ```
 (Recordemos tomarle una captura de pantalla para subirlo, además puede que no salga a la primera porque podría no leer bien las letras, en ese caso es bueno probar ampliando el rango en que se toma la foto).
 
 La respuesta del servidor es nuevamente el archivo _results.txt_, en este caso vemos el archivo _/etc/passwd_ y hay dos usuarios que tienen shell, el usuario _svc\_acc_ y _root_. Sabiendo lo anterior, ahora podemos leer la _id\_rsa_ del usuario svc\_acc para intentar conectarnos por SSH, por lo que nuevamente usaré el payload anterior, cambiando la ruta y hacer un pantallazo de:
-{% assign stti = '{{ get_flashed_messages.__globals__.__builtins__.open("/home/scv_acc/.ssh/id_rsa").read() }}' %}
+{% assign ssti = '{{ get_flashed_messages.__globals__.__builtins__.open("/home/scv_acc/.ssh/id_rsa").read() }}' %}
 ```shell
-{{ stti }}
+{{ ssti }}
 ```
 
 ...para subirlo y obtener la clave privada. Ahora movemos el archivo con la clave privada a nuestro directorio de trabajo y le quitamos las etiquetas `<p></p>` , además le damos permiso _600_ (rw-------):

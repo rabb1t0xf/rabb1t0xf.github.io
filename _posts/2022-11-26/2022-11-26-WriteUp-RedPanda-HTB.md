@@ -3,7 +3,7 @@ title: WriteUp RedPanda HTB
 author: rabb1t
 date: 2022-11-26
 categories: [HackTheBox, Writeup, Machines, Linux]
-tags: [STTI, XXE, Path-Traversal, Spring-Boot, Code-analyse, Java]
+tags: [SSTI, XXE, Path-Traversal, Spring-Boot, Code-analyse, Java]
 math: false
 mermaid: false
 image:
@@ -17,7 +17,7 @@ image:
 - [Herramientas y recursos empleados](#herramientas-y-recursos-empleados)
 - [Enumeración](#enumeración)
 - [Buscando pandas rojos](#buscando-pandas-rojos)
-- [Explotando la vulnerabilidad STTI mientras buscamos pandas rojos](#explotando-la-vulnerabilidad-stti-mientras-buscamos-pandas-rojos)
+- [Explotando la vulnerabilidad SSTI mientras buscamos pandas rojos](#explotando-la-vulnerabilidad-ssti-mientras-buscamos-pandas-rojos)
   - [Obteniendo una shell como el usuario woodenk](#obteniendo-una-shell-como-el-usuario-woodenk)
 - [Escalando privilegios](#escalando-privilegios)
   - [Analizando procesos con pspy](#analizando-procesos-con-pspy)
@@ -180,7 +180,7 @@ Ahora podemos hacer un script para verificar con qué caracteres obtendremos un 
 ❯ for i in $(cat dict.txt); do echo -e "Caracter: ${i}"; curl -s -d "name=${i}{7*7}" http://10.10.11.170:8080/search | grep 'You searched for: 49'; done
 ```
 
-## Explotando la vulnerabilidad STTI mientras buscamos pandas rojos
+## Explotando la vulnerabilidad SSTI mientras buscamos pandas rojos
 Es probable que no sea tan practico, pero al ejecutarlo nos muestra dos caracteres \[@\*\], los cuales devuelven en la respuesta el número _49_. Teniendo dos caracteres para probar código, es cuando podemos buscar un payload bien diseñado para ejecutar comandos, en este caso he usado este payload del recurso [AllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#java):
 
 >
@@ -188,7 +188,7 @@ ${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().ex
 
 
 Para usar el anterior payload, debemos cambiar el _\$_ por alguno de los caracteres obtenidos anteriormente. Cuando probamos a usar _\@_ no nos muestra nada, pero al usar el _\*_, obtenemos:
-![Web redPanda STTI](/assets/favicon/2022-11-26/redPanda4.png)
+![Web redPanda SSTI](/assets/favicon/2022-11-26/redPanda4.png)
 
 ### Obteniendo una shell como el usuario woodenk
 
