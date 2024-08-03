@@ -1,10 +1,11 @@
 # The Site Configuration
 
 # homepage neumorphism
-typing_text: '"Click on the blog button", 
-"I love mathematics",
+typing_text: '"Click on the blog button",
+"I am AppSec",
+"I am not a rabbit hole",
 "I ❤️ cibersecurity",
-"nmap -p- localhost",
+"nmap localhost",
 "netcat -e /bin/bash localhost 443",
 "Ghidra 🐲"'
 
@@ -42,8 +43,8 @@ url: 'https://rabb1t-0.github.io'
 github:
   username: rabb1t-0             # change to your github username
 
-twitter:
-  username: rabb1t            # change to your twitter username
+# twitter:
+#  username: rabb1t            # change to your twitter username
 
 linkedin: 
   username: rabb1t
@@ -52,11 +53,11 @@ social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
   name: rabb1t
-  email: rabb1t0xf@gmail.com             # change to your email address
+  # email: rabb1t0xf@gmail.com            # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://twitter.com/rabb1t0xf      # change to your twitter homepage
-    - https://github.com/rabb1t-0      # change to your github homepage
+    # - https://twitter.com/rabb1t      # change to your twitter homepage
+    - https://github.com/rabb1t-0     # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
     - https://www.linkedin.com/in/rabb1t
@@ -94,7 +95,7 @@ theme_mode: # [light|dark]
 img_cdn: ''
 
 # the avatar on sidebar, support local or CORS resources
-avatar: 'assets/favicon/ctf.png'
+avatar: 'assets/favicon/rbit.jpg'
 
 # boolean type, the global switch for ToC in posts.
 toc: true

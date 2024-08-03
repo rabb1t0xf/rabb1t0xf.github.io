@@ -78,11 +78,14 @@
       {% capture url %}
         {%- if entry.type == 'github' -%}
           https://github.com/{{ site.github.username }}
-        {%- elsif entry.type == 'twitter' -%}
-          https://twitter.com/{{ site.twitter.username }}
-        {%- elsif entry.type == 'email' -%}
-          {% assign email = site.social.email | split: '@' %}
-          javascript:location.href = 'mailto:' + ['{{ email[0] }}','{{ email[1] }}'].join('@')
+        
+        {% comment %}
+          {%- elsif entry.type == 'twitter' -%}
+            https://twitter.com/{{ site.twitter.username }}
+          {%- elsif entry.type == 'email' -%}
+            {% assign email = site.social.email | split: '@' %}
+            javascript:location.href = 'mailto:' + ['{{ email[0] }}','{{ email[1] }}'].join('@')
+        {% endcomment %}
         {%- elsif entry.type == 'linkedin' -%}
           https://www.linkedin.com/in/{{ site.linkedin.username }}
         {%- else -%}
@@ -96,7 +99,6 @@
         <i class="{{ entry.icon }}"></i>
       </a>
       {% endif %}
-
     {% endfor %}
 
   </div> <!-- .sidebar-bottom -->
